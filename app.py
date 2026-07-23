@@ -141,7 +141,7 @@ with col4:
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# 8. 專屬「管理員協助」版面 (後台直飛 WhatsApp API)
+# 8. 專屬「管理員協助」版面 (修復 Session State 衝突問題)
 # -----------------------------------------------------------------------------
 if st.session_state.admin_mode:
     st.markdown("---")
@@ -156,24 +156,28 @@ if st.session_state.admin_mode:
                     model="openai/whisper-1",
                     file=admin_audio
                 )
+                # 使用獨立變數處理，避免寫入已綁定 key 的 widget 導致錯誤
                 st.session_state.admin_text = transcription.text
                 st.rerun()
             except Exception as e:
                 st.warning("⚠️ 語音辨識失敗，請直接在下方輸入文字。")
     
-    issue_text = st.text_area("✍️ 請文字輸入需要協助的事項：", key="admin_text", placeholder="例如：茶水間咖啡機冇豆 / 冷氣唔凍...")
+    # 建立文字框，預設值使用 st.session_state.admin_text
+    issue_text = st.text_area(
+        "✍️ 請文字輸入需要協助的事項：", 
+        value=st.session_state.admin_text,
+        placeholder="例如：茶水間咖啡機冇豆 / 冷氣唔凍..."
+    )
     
     if issue_text.strip():
-        # 【修改重點】改為直接執行發送的按鈕，而不再是網頁連結
         if st.button("🚀 確認直接發送通知畀管業處", type="primary", use_container_width=True):
             with st.spinner("⏳ 系統正在後台發送 WhatsApp..."):
                 try:
-                    # 讀取 Webhook URL (你需要喺 Streamlit Secrets 加入 WHATSAPP_WEBHOOK_URL)
                     webhook_url = st.secrets.get("WHATSAPP_WEBHOOK_URL", "")
                     
                     if webhook_url:
-                        # 真正發送 API Request (傳送至你的 Zapier / Make.com / Meta API)
                         payload = {
+                            # ⚠️ 提示：85223646837 為固網電話，若要真實接收 WhatsApp，請填入負責人的手機號碼（例如 85291234567）
                             "phone": "85223646837",
                             "message": f"🤖【志昌智能管家 - 報修通知】\n📍 地點：土瓜灣落山道 108 號\n⚠️ 事項：{issue_text.strip()}"
                         }
@@ -181,18 +185,17 @@ if st.session_state.admin_mode:
                         
                         if response.status_code in [200, 201]:
                             st.success("✅ 發送成功！已經直接喺後台通知管業處。")
-                            st.session_state.admin_text = "" # 發送完自動清空文字
+                            st.session_state.admin_text = "" # 發送完清空暫存變數
                         else:
                             st.error(f"❌ API 發送失敗 (Status Code: {response.status_code})")
                     else:
-                        # 如果未設定 Webhook，顯示模擬成功畫面
                         st.success("✅ (系統模擬發送) 已經紀錄並通知管業處！")
-                        st.caption("⚙️ **開發者提示**：如果要真實發送，請前往 Streamlit Settings > Secrets 加入 `WHATSAPP_WEBHOOK_URL` 連結至 Zapier 或 Make.com。")
+                        st.caption("⚙️ **開發者提示**：如果要真實發送，請前往 Streamlit Settings > Secrets 加入 `WHATSAPP_WEBHOOK_URL`。")
                         
                 except Exception as e:
                     st.error(f"❌ 系統連線發生錯誤：{str(e)}")
                     
-        # 後備方案（萬一系統死咗，仍然可以自己手動 Send）
+        # 後備方案
         st.markdown("<br>", unsafe_allow_html=True)
         encoded_msg = urllib.parse.quote(issue_text.strip())
         st.markdown(f"<div style='text-align:center;'><a href='https://wa.me/85223646837?text={encoded_msg}' target='_blank' style='font-size:12px; color:gray; text-decoration:none;'>👉 (後備方案) 點擊此處打開手機 WhatsApp App 手動發送</a></div>", unsafe_allow_html=True)
@@ -202,6 +205,7 @@ if st.session_state.admin_mode:
         
     if st.button("❌ 關閉協助版面", use_container_width=True):
         st.session_state.admin_mode = False
+        st.session_state.admin_text = ""
         st.rerun()
     st.markdown("---")
 
@@ -261,6 +265,9 @@ if final_prompt:
                 st.markdown(ai_reply)
 
                 st.session_state.messages.append({"role": "assistant", "content": ai_reply})
+
+            except Exception as e:
+                st.error(f"❌ API 呼叫失敗：{str(e)}")
 
             except Exception as e:
                 st.error(f"❌ API 呼叫失敗：{str(e)}")
