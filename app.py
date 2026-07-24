@@ -8,7 +8,7 @@ from openai import OpenAI
 from streamlit_autorefresh import st_autorefresh
 
 # -----------------------------------------------------------------------------
-# 1. 100% 完整多語言介面字典 (已還原快捷鍵名稱)
+# 1. 100% 完整多語言介面字典 (完全保留原樣)
 # -----------------------------------------------------------------------------
 TRANSLATIONS = {
     "廣東話 (Cantonese)": {
@@ -235,7 +235,7 @@ st.title(T["title"])
 st.caption(T["caption"])
 
 # -----------------------------------------------------------------------------
-# 5. 高效快取通告翻譯
+# 5. 讀取與逐一獨立翻譯通告
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -246,7 +246,6 @@ def load_notices():
         pass
     return []
 
-@st.cache_data(ttl=86400)
 def get_translated_notice(title, content, target_lang):
     if target_lang in ["廣東話 (Cantonese)", "繁體中文 (Traditional Chinese)"]:
         return title, content
@@ -344,32 +343,14 @@ def get_real_hk_weather(lang):
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 7. System Prompt (精準限定：落山道 108 號樓下 / 1 分鐘步程)
+# 7. System Prompt (修正：支援全港搜尋，僅在詢問「附近」時定位落山道)
 # -----------------------------------------------------------------------------
-SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed ONLY at 108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong.
+SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), an intelligent assistant stationed at 108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong.
 
-【STRICT MANDATE FOR RESTAURANT QUERIES】
-When asked for nearby food, you MUST prioritize real venues located EXACTLY on Lok Shan Road or inside/next to Merit Industrial Centre (美華工業中心, Lok Shan Road 108).
-
-REAL RESTAURANTS RIGHT AT / ADJACENT TO 108 LOK SHAN ROAD:
-1. 遙 Haruka (日式居酒屋/拉麵/串燒)
-   - Address: 九龍土瓜灣落山道 1 號 A 地舖 (步行約 1 分鐘，落山道沿路)
-   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E9%81%99+Haruka+%E5%9C%9F%E7%93%9C%E7%81%A3%E8%90%BD%E5%B1%B1%E9%81%93)
-   - OpenRice: [OpenRice Search](https://www.openrice.com/zh/hongkong/restaurants?where=%E9%81%99+Haruka+%E5%9C%9F%E7%93%9C%E7%81%A3)
-
-2. 美華工業中心食堂 / 樓下茶餐廳 (Merit Industrial Centre Food Outlets)
-   - Address: 土瓜灣落山道 108 號美華工業中心地下及周邊
-   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E7%BE%8E%E8%8F%AF%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83+%E9%A4%90%E5%BB%B3)
-   - OpenRice: [OpenRice Search](https://www.openrice.com/zh/hongkong/restaurants?where=%E7%BE%8E%E8%8F%AF%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83)
-
-3. 聯發茶餐廳 / 落山道街坊冰室 (Lok Shan Road Local Cafe)
-   - Address: 土瓜灣落山道沿路 (1-2 分鐘步程)
-   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E5%9C%9F%E7%93%9C%E7%81%A3%E8%90%BD%E5%B1%B1%E9%81%93+%E8%8C%B6%E9%A4%90%E5%BB%B3)
-
-4. 哥登堡餐廳 Gothenburg Restaurant (懷舊扒房)
-   - Address: 土瓜灣馬頭圍道 423 號 (落山道交界轉角位，步行約 1 分鐘)
-   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E5%93%A5%E7%99%BB%E5%A0%A1%E9%A4%90%E5%BB%B3+%E5%9C%9F%E7%93%9C%E7%81%A3)
-   - OpenRice: [OpenRice Search](https://www.openrice.com/zh/hongkong/restaurants?where=%E5%93%A5%E7%99%BB%E5%A0%A1%E9%A4%90%E5%BB%B3)
+【LOCATION & SEARCH FLEXIBILITY MANDATE】
+1. DEFAULT / BASE LOCATION: 108 Lok Shan Road, To Kwa Wan, Kowloon.
+2. NEARBY QUERIES: ONLY when the user explicitly asks for "附近" (nearby), "樓下" (downstairs), or uses quick shortcut buttons without specifying another location, recommend places near 108 Lok Shan Road / Merit Industrial Centre.
+3. HONG KONG-WIDE SEARCH: If the user searches for ANY other district or specific locations in Hong Kong (e.g., "Soho", "Central", "Tsim Sha Tsui", "Mong Kok", "Causeway Bay", etc.), you MUST answer with real, accurate information for THAT SPECIFIC AREA in Hong Kong. DO NOT restrict or redirect the search back to Lok Shan Road!
 
 Response Language: STRICTLY 【{T['ai_prompt_lang']}】.
 Style Instruction: {T['ai_style_instruction']}
