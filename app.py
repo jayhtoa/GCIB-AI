@@ -47,7 +47,7 @@ TRANSLATIONS = {
         "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管業處！",
         "msg_send_failed": "❌ 發送失敗，請稍後再試。",
         "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
-        "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再試一度發送問題。"
+        "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再試一次。"
     },
     "繁體中文 (Traditional Chinese)": {
         "title": "🤖 志昌 AI 智能管家",
@@ -187,6 +187,7 @@ if "last_active_time" in st.session_state:
         st.session_state.messages = []
         st.session_state.admin_mode = False
         st.session_state.admin_text = ""
+        st.session_state.pending_prompt = None
         st.session_state["last_active_time"] = time.time()
         st.rerun()
 
@@ -196,6 +197,8 @@ if "admin_mode" not in st.session_state:
     st.session_state.admin_mode = False
 if "admin_text" not in st.session_state:
     st.session_state.admin_text = ""
+if "pending_prompt" not in st.session_state:
+    st.session_state.pending_prompt = None
 if "last_active_time" not in st.session_state:
     st.session_state["last_active_time"] = time.time()
 
@@ -229,9 +232,10 @@ if "prev_language" not in st.session_state:
 
 if st.session_state.prev_language != selected_language:
     st.session_state.prev_language = selected_language
-    st.session_state.messages = []  # 清空對話紀錄
+    st.session_state.messages = []
     st.session_state.admin_mode = False
     st.session_state.admin_text = ""
+    st.session_state.pending_prompt = None
     st.rerun()
 
 T = TRANSLATIONS[selected_language]
@@ -309,6 +313,7 @@ with st.sidebar:
         st.session_state.messages = []
         st.session_state.admin_mode = False
         st.session_state.admin_text = ""
+        st.session_state.pending_prompt = None
         st.session_state["last_active_time"] = time.time()
         st.rerun()
 
@@ -402,23 +407,23 @@ Whenever recommending any restaurant, output these links:
 """
 
 # -----------------------------------------------------------------------------
-# 9. 快捷按鈕區
+# 9. 快捷按鈕區 (修復點擊無反應問題)
 # -----------------------------------------------------------------------------
 st.markdown(T["shortcut_header"])
-
-shortcut_prompt = None
 
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     if st.button(T["btn_food"], use_container_width=True):
         st.session_state["last_active_time"] = time.time()
-        shortcut_prompt = T["prompt_food"]
+        st.session_state.pending_prompt = T["prompt_food"]
         st.session_state.admin_mode = False
+        st.rerun()
 with col2:
     if st.button(T["btn_trans"], use_container_width=True):
         st.session_state["last_active_time"] = time.time()
-        shortcut_prompt = T["prompt_trans"]
+        st.session_state.pending_prompt = T["prompt_trans"]
         st.session_state.admin_mode = False
+        st.rerun()
 with col3:
     if st.button(T["btn_weather"], use_container_width=True):
         st.session_state["last_active_time"] = time.time()
@@ -522,11 +527,16 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # -----------------------------------------------------------------------------
-# 13. 處理輸入與 API 請求 (具備自動 Error Catch & 重試機制)
+# 13. 處理輸入與 API 請求 (正確接抓 pending_prompt)
 # -----------------------------------------------------------------------------
 user_text = st.chat_input(T["chat_placeholder"])
 
-final_prompt = user_text or shortcut_prompt or voice_prompt
+# 判定使用者發送的 Prompt
+final_prompt = user_text or st.session_state.pending_prompt or voice_prompt
+
+# 讀取後重置 pending_prompt，避免重複觸發
+if st.session_state.pending_prompt:
+    st.session_state.pending_prompt = None
 
 if final_prompt:
     st.session_state["last_active_time"] = time.time()
@@ -539,7 +549,6 @@ if final_prompt:
         with st.spinner(T["spinner_processing"]):
             ai_reply = None
             
-            # API 請求邏輯（支援自動降級/重試）
             api_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + [
                 {"role": m["role"], "content": m["content"]}
                 for m in st.session_state.messages
@@ -553,7 +562,7 @@ if final_prompt:
                         model=model_name,
                         messages=api_messages,
                         temperature=0.1,
-                        timeout=15
+                        timeout=20
                     )
                     ai_reply = response.choices[0].message.content.strip()
                     if ai_reply:
@@ -566,5 +575,4 @@ if final_prompt:
                 st.session_state.messages.append({"role": "assistant", "content": ai_reply})
             else:
                 st.error(T["msg_api_error"])
-                # 移走最後一條失敗的 user message 避免影響下一次對話
                 st.session_state.messages.pop()
