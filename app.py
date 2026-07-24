@@ -235,7 +235,7 @@ st.title(T["title"])
 st.caption(T["caption"])
 
 # -----------------------------------------------------------------------------
-# 5. 高效快取通告翻譯 (使用 @st.cache_data 避免重複呼叫 AI 導致卡死)
+# 5. 高效快取通告翻譯
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -344,15 +344,24 @@ def get_real_hk_weather(lang):
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 7. System Prompt (嚴格語系與真實數據)
+# 7. System Prompt (精準網址格式指令)
 # -----------------------------------------------------------------------------
 SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed ONLY at 108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong.
 
 【STRICT MANDATE】
 1. Response Language: STRICTLY 【{T['ai_prompt_lang']}】.
 2. Style Instruction: {T['ai_style_instruction']}
-3. Absolute Truth: Location is 108 Lok Shan Road. Nearest MTR: To Kwa Wan Station Exit B. Buses: 5C, 11X, 21, 26, 85X, 116.
-4. Food Queries: Provide real restaurants with Google Maps and OpenRice links.
+3. Real Places Near 108 Lok Shan Road:
+   - 遙 Haruka Japanese Restaurant (Address: G/F, 1A Lok Shan Road, To Kwa Wan - 1 min walk)
+   - 楚撚記大排檔 Chor Lun Kee (Address: Pok Kwong Building, To Kwa Wan)
+   - HeySoNuts Cafe (Address: Shop 3, G/F, 149 Pak Tai Street, To Kwa Wan)
+   - 哥登堡餐廳 Gothenburg Restaurant (Address: 423 Ma Tau Wai Road)
+
+4. URL LINK GENERATION RULES (CRITICAL):
+   - ONLY output standard, valid web links for Google Maps and OpenRice using URL-encoded terms!
+   - Google Maps Format: `https://www.google.com/maps/search/?api=1&query=<URL_ENCODED_RESTAURANT_NAME_AND_LOCATION>`
+   - OpenRice Format: `https://www.openrice.com/zh/hongkong/restaurants?where=<URL_ENCODED_RESTAURANT_NAME>`
+   - DO NOT make up fake domain names or invalid link paths.
 """
 
 # -----------------------------------------------------------------------------
@@ -481,7 +490,7 @@ if user_text:
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# 13. AI 核心發送（改用極速 gpt-4o-mini 首選，防止連線延遲）
+# 13. AI 核心發送
 # -----------------------------------------------------------------------------
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     with st.chat_message("assistant"):
@@ -514,4 +523,4 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 st.session_state.messages.append({"role": "assistant", "content": ai_reply})
                 st.rerun()
             else:
-                st.error(f"❌ 連線逾時或 API 錯誤，請檢查 OpenRouter 點數或 Secrets 設定。錯誤：`{last_err}`")
+                st.error(f"❌ 連線逾時或 API 錯誤：`{last_err}`")
