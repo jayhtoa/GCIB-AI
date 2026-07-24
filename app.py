@@ -5,9 +5,10 @@ import urllib.parse
 import requests
 import streamlit as st
 from openai import OpenAI
+from streamlit_autorefresh import st_autorefresh
 
 # -----------------------------------------------------------------------------
-# 1. 多語言介面字典 (UI Translations)
+# 1. 100% 全全面多語言字典 (UI, Prompts & System Status Messages)
 # -----------------------------------------------------------------------------
 TRANSLATIONS = {
     "廣東話 (Cantonese)": {
@@ -36,7 +37,16 @@ TRANSLATIONS = {
         "btn_close_admin": "❌ 關閉協助版面",
         "voice_search_label": "🎤 點擊錄音進行語音搜尋 (Voice Search)",
         "chat_placeholder": "請輸入問題...",
-        "ai_prompt_lang": "廣東話 (Cantonese)"
+        "ai_prompt_lang": "廣東話 (Cantonese)",
+        "prompt_food": "請推薦土瓜灣落山道 108 號附近的熱門餐廳，並附上 Google Maps 及 OpenRice 連結！",
+        "prompt_trans": "請說明由土瓜灣落山道 108 號出發，點去土瓜灣地鐵站 B 出口同附近馬頭圍道巴士站？",
+        "spinner_processing": "⏳ AI 正在處理中...",
+        "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
+        "spinner_sending": "⏳ 正在發送通知畀管業處...",
+        "msg_send_success": "✅ 通知發送成功！",
+        "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管業處！",
+        "msg_send_failed": "❌ 發送失敗，請稍後再試。",
+        "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。"
     },
     "繁體中文 (Traditional Chinese)": {
         "title": "🤖 志昌 AI 智能管家",
@@ -64,7 +74,16 @@ TRANSLATIONS = {
         "btn_close_admin": "❌ 關閉協助版面",
         "voice_search_label": "🎤 點擊錄音進行語音搜尋 (Voice Search)",
         "chat_placeholder": "請輸入問題...",
-        "ai_prompt_lang": "繁體中文 (Traditional Chinese)"
+        "ai_prompt_lang": "繁體中文 (Traditional Chinese)",
+        "prompt_food": "請推薦土瓜灣落山道 108 號附近的熱門餐廳，並附上 Google Maps 及 OpenRice 連結！",
+        "prompt_trans": "請說明由土瓜灣落山道 108 號出發，如何前往土瓜灣地鐵站 B 出口及附近馬頭圍道巴士站？",
+        "spinner_processing": "⏳ AI 正在處理中...",
+        "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
+        "spinner_sending": "⏳ 正在發送通知給管理處...",
+        "msg_send_success": "✅ 通知發送成功！",
+        "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管理處！",
+        "msg_send_failed": "❌ 發送失敗，請稍後再試。",
+        "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。"
     },
     "简体中文 (Simplified Chinese)": {
         "title": "🤖 志昌 AI 智能管家",
@@ -92,7 +111,16 @@ TRANSLATIONS = {
         "btn_close_admin": "❌ 关闭协助界面",
         "voice_search_label": "🎤 点击录音进行语音搜索 (Voice Search)",
         "chat_placeholder": "请输入问题...",
-        "ai_prompt_lang": "简体中文 (Simplified Chinese)"
+        "ai_prompt_lang": "简体中文 (Simplified Chinese)",
+        "prompt_food": "请推荐土瓜湾落山道 108 号附近的热门餐厅，并附上 Google Maps 及 OpenRice 链接！",
+        "prompt_trans": "请说明由土瓜湾落山道 108 号出发，如何前往土瓜湾地铁站 B 出口及附近马头围道巴士站？",
+        "spinner_processing": "⏳ AI 正在处理中...",
+        "spinner_transcribing": "🎙️ 正在转换语音为文字...",
+        "spinner_sending": "⏳ 正在发送通知给管理处...",
+        "msg_send_success": "✅ 通知发送成功！",
+        "msg_send_mock_success": "✅ (系统模拟发送) 已经纪录并通知管理处！",
+        "msg_send_failed": "❌ 发送失败，请稍后再试。",
+        "msg_voice_error": "⚠️ 语音识别失败，请重新尝试。"
     },
     "English": {
         "title": "🤖 Chi Cheong AI Butler",
@@ -120,7 +148,16 @@ TRANSLATIONS = {
         "btn_close_admin": "❌ Close Admin Panel",
         "voice_search_label": "🎤 Click to record for Voice Search",
         "chat_placeholder": "Ask a question...",
-        "ai_prompt_lang": "English"
+        "ai_prompt_lang": "English",
+        "prompt_food": "Please recommend top nearby popular restaurants around 108 Lok Shan Road with Google Maps and OpenRice links!",
+        "prompt_trans": "Please explain how to get to To Kwa Wan MTR Station Exit B and nearby bus stops from 108 Lok Shan Road.",
+        "spinner_processing": "⏳ AI is processing...",
+        "spinner_transcribing": "🎙️ Transcribing audio...",
+        "spinner_sending": "⏳ Sending notification to Property Office...",
+        "msg_send_success": "✅ Notification sent successfully!",
+        "msg_send_mock_success": "✅ (Simulated) Recorded and notified Property Office!",
+        "msg_send_failed": "❌ Failed to send. Please try again later.",
+        "msg_voice_error": "⚠️ Speech recognition failed. Please try again."
     }
 }
 
@@ -134,19 +171,22 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 3. 初始化對話紀錄與閒置重置 (Auto Timeout Reset)
+# 3. 真正的背景自動重置 (Background Auto-Refresh & Timeout Reset)
 # -----------------------------------------------------------------------------
-TIMEOUT_SECONDS = 120  # 設定閒置 120 秒 (2 分鐘) 自動重置畫面
+TIMEOUT_SECONDS = 120  # 閒置重置時間：120 秒 (2 分鐘)
 
-# 檢查是否閒置超時
+# 設定網頁背景每 10 秒自動觸發一次「心跳」檢查 (10,000 毫秒)
+st_autorefresh(interval=10000, key="auto_timeout_check")
+
+# 如果已經有歷史對話或操作，但距離最後操作時間已超時 -> 自動徹底重置！
 if "last_active_time" in st.session_state:
-    if time.time() - st.session_state["last_active_time"] > TIMEOUT_SECONDS:
+    elapsed_time = time.time() - st.session_state["last_active_time"]
+    if elapsed_time > TIMEOUT_SECONDS:
         st.session_state.messages = []
         st.session_state.admin_mode = False
         st.session_state.admin_text = ""
-
-# 紀錄/更新最後操作時間
-st.session_state["last_active_time"] = time.time()
+        st.session_state["last_active_time"] = time.time()
+        st.rerun()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -154,6 +194,8 @@ if "admin_mode" not in st.session_state:
     st.session_state.admin_mode = False
 if "admin_text" not in st.session_state:
     st.session_state.admin_text = ""
+if "last_active_time" not in st.session_state:
+    st.session_state["last_active_time"] = time.time()
 
 # -----------------------------------------------------------------------------
 # 4. 安全讀取 API Key
@@ -256,62 +298,98 @@ with st.sidebar:
         st.session_state.messages = []
         st.session_state.admin_mode = False
         st.session_state.admin_text = ""
+        st.session_state["last_active_time"] = time.time()
         st.rerun()
 
     st.markdown("---")
     st.markdown(f"{T['emergency_title']}\n{T['phone_label']}\n{T['service_label']}")
 
 # -----------------------------------------------------------------------------
-# 7. 天氣 API
+# 7. 多語言天氣 API
 # -----------------------------------------------------------------------------
-def get_real_hk_weather():
+def get_real_hk_weather(lang):
+    api_lang = "tc"
+    if lang == "English":
+        api_lang = "en"
+    elif lang == "简体中文 (Simplified Chinese)":
+        api_lang = "sc"
+
     try:
-        url = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc"
+        url = f"https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang={api_lang}"
         res = requests.get(url, timeout=5).json()
         
         temp_data = res.get("temperature", {}).get("data", [])
-        kowloon_temp = next((item["value"] for item in temp_data if item.get("place") == "九龍城"), None)
+        
+        kowloon_name = "Kowloon City" if api_lang == "en" else "九龍城"
+        kowloon_temp = next((item["value"] for item in temp_data if item.get("place") == kowloon_name), None)
         if not kowloon_temp and temp_data:
             kowloon_temp = temp_data[0].get("value", "N/A")
             
         humidity = res.get("humidity", {}).get("data", [{}])[0].get("value", "N/A")
         warnings = res.get("warningMessage", [])
-        warning_str = " | ".join(warnings) if warnings else "目前無特別天氣警告"
         
-        return f"""🌤️ **香港天文台即時官方天氣報告：**
+        if lang == "English":
+            warning_str = " | ".join(warnings) if warnings else "No special weather warnings"
+            return f"""🌤️ **Hong Kong Observatory Real-time Weather Report:**
+- 📍 **Kowloon City / To Kwa Wan Temp**: {kowloon_temp}°C
+- 💧 **Relative Humidity**: {humidity}%
+- ⚠️ **Current Warnings**: {warning_str}
+- 🔗 [Click here for Official HKO Website](https://www.hko.gov.hk/en/index.html)"""
+
+        elif lang == "简体中文 (Simplified Chinese)":
+            warning_str = " | ".join(warnings) if warnings else "目前无特别天气警告"
+            return f"""🌤️ **香港天文台实时官方天气报告：**
+- 📍 **九龙城/土瓜湾区气温**：{kowloon_temp}°C
+- 💧 **相对湿度**：{humidity}%
+- ⚠️ **现时天气警告**：{warning_str}
+- 🔗 [点击查看香港天文台官方网站](https://www.hko.gov.hk/sc/index.html)"""
+
+        elif lang == "繁體中文 (Traditional Chinese)":
+            warning_str = " | ".join(warnings) if warnings else "目前無特別天氣警告"
+            return f"""🌤️ **香港天文台實時官方天氣報告：**
+- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C
+- 💧 **相對濕度**：{humidity}%
+- ⚠️ **現時天氣警告**：{warning_str}
+- 🔗 [點擊查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"""
+
+        else: # 廣東話
+            warning_str = " | ".join(warnings) if warnings else "目前冇特別天氣警告"
+            return f"""🌤️ **香港天文台即時官方天氣報告：**
 - 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C
 - 💧 **相對濕度**：{humidity}%
 - ⚠️ **現時天氣警告**：{warning_str}
 - 🔗 [點此查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"""
+
     except Exception:
-        return "⚠️ 天氣 API 連線暫時繁忙，請直接點擊 [香港天文台官網](https://www.hko.gov.hk/tc/index.html) 查看實時天氣。"
+        if lang == "English":
+            return "⚠️ Weather API is busy, please check the [Hong Kong Observatory Official Website](https://www.hko.gov.hk/en/index.html)."
+        elif lang == "简体中文 (Simplified Chinese)":
+            return "⚠️ 天气 API 连线繁忙，请直接查看 [香港天文台官网](https://www.hko.gov.hk/sc/index.html)。"
+        else:
+            return "⚠️ 天氣 API 連線暫時繁忙，請直接點擊 [香港天文台官網](https://www.hko.gov.hk/tc/index.html) 查看實時天氣。"
 
 # -----------------------------------------------------------------------------
-# 8. System Prompt
+# 8. Dynamic System Prompt
 # -----------------------------------------------------------------------------
-SYSTEM_PROMPT = f"""你係「志昌 AI 智能管家」，服務地位於【香港九龍土瓜灣落山道 108 號】。
+SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed at [108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong].
 
-【最高指令：語言強制規定（最高優先級！）】
-- 使用者目前選擇的語言是：【{T['ai_prompt_lang']}】。
-- 你的**整個回覆內容**（包括餐廳名稱介紹、地址描述、交通指引、結語等）必須【完全且100%】使用【{T['ai_prompt_lang']}】撰寫。
-- 即使資料庫或搜尋結果是繁體中文或其他語言，你也【必須翻譯並轉換】為【{T['ai_prompt_lang']}】後才輸出！絕不可出現混合語言。
+【STRICT ABSOLUTE RULE: LANGUAGE ENFORCEMENT】
+- The user's currently selected language is STRICTLY: 【{T['ai_prompt_lang']}】.
+- EVERY SINGLE WORD of your response (including restaurant names, direction guides, transport advice, headings, and friendly wrap-ups) MUST BE WRITTEN 100% IN 【{T['ai_prompt_lang']}】.
+- Even if raw search data or locations are in Traditional Chinese, you MUST translate and render them into 【{T['ai_prompt_lang']}】. NO language mixing allowed.
 
-【嚴格真實性原則】
-1. 所有介紹的餐廳、地址、地鐵出口必須為真實存在資料。
+【REALITY & TRUTH】
+1. All recommended restaurants, addresses, MTR exits, and bus stops MUST be real and accurate.
 
-【跨區搜尋與交通規則】
-- 如果使用者尋找「土瓜灣以外」的其他地區（例如 Soho、中環、旺角等）的餐廳或設施，你必須「只推薦該目標地區」的真實地點，絕對不要混入土瓜灣區的餐廳。
-- 介紹完其他地區餐廳後，請在結尾提供「由土瓜灣落山道 108 號出發，前往該地區的建議交通路線」。
+【LOCATION CONTEXT】
+- Property location: 108 Lok Shan Road, To Kwa Wan.
+- Nearest MTR: To Kwa Wan Station Exit B.
+- Major Bus routes: 5C, 11X, 21, 26, 85X, 116.
 
-【真實地點與交通 Context】
-- 本工廠地址：土瓜灣落山道 108 號。
-- 港鐵站：港鐵土瓜灣站 B 出口。
-- 巴士線：5C、11X、21、26、85X、116 等。
-
-【餐廳搜尋超連結格式】
-每當推薦任何餐廳，必須輸出以下真實搜尋連結：
-- 📍 Google Maps 導航：`[📍 Google 地圖導航](https://www.google.com/maps/search/?api=1&query=餐廳名稱+地區)`
-- 🍽️ OpenRice Book 枱：`[👉 點我 Book 枱/睇 OpenRice](https://www.openrice.com/zh/hongkong/restaurants?where=餐廳名稱)`
+【RESTAURANT LINK FORMAT】
+Whenever recommending any restaurant, output these links:
+- 📍 Google Maps: `[📍 Google Maps](https://www.google.com/maps/search/?api=1&query=RESTAURANT_NAME+LOCATION)`
+- 🍽️ OpenRice: `[👉 OpenRice](https://www.openrice.com/zh/hongkong/restaurants?where=RESTAURANT_NAME)`
 """
 
 # -----------------------------------------------------------------------------
@@ -324,20 +402,24 @@ shortcut_prompt = None
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     if st.button(T["btn_food"], use_container_width=True):
-        shortcut_prompt = "請推薦土瓜灣落山道108號附近的真實熱門餐廳，並附上 Google Maps 及 OpenRice 連結！"
+        st.session_state["last_active_time"] = time.time()
+        shortcut_prompt = T["prompt_food"]
         st.session_state.admin_mode = False
 with col2:
     if st.button(T["btn_trans"], use_container_width=True):
-        shortcut_prompt = "請詳細說明由土瓜灣落山道108號出發，點去土瓜灣地鐵站 B 出口同附近馬頭圍道巴士站？"
+        st.session_state["last_active_time"] = time.time()
+        shortcut_prompt = T["prompt_trans"]
         st.session_state.admin_mode = False
 with col3:
     if st.button(T["btn_weather"], use_container_width=True):
-        real_weather_text = get_real_hk_weather()
+        st.session_state["last_active_time"] = time.time()
+        real_weather_text = get_real_hk_weather(selected_language)
         st.session_state.messages.append({"role": "assistant", "content": real_weather_text})
         st.session_state.admin_mode = False
         st.rerun()
 with col4:
     if st.button(T["btn_admin"], use_container_width=True):
+        st.session_state["last_active_time"] = time.time()
         st.session_state.admin_mode = True
         st.rerun()
 
@@ -351,7 +433,8 @@ if st.session_state.admin_mode:
     
     admin_audio = st.audio_input(T["voice_record_admin"])
     if admin_audio is not None:
-        with st.spinner("🎙️ Transcribing audio..."):
+        st.session_state["last_active_time"] = time.time()
+        with st.spinner(T["spinner_transcribing"]):
             try:
                 transcription = client.audio.transcriptions.create(
                     model="openai/whisper-1",
@@ -360,7 +443,7 @@ if st.session_state.admin_mode:
                 st.session_state.admin_text = transcription.text
                 st.rerun()
             except Exception as e:
-                st.warning("⚠️ 語音辨識失敗 / Audio transcription failed.")
+                st.warning(T["msg_voice_error"])
     
     issue_text = st.text_area(
         T["input_admin_placeholder"], 
@@ -370,7 +453,8 @@ if st.session_state.admin_mode:
     
     if issue_text.strip():
         if st.button(T["btn_send_admin"], type="primary", use_container_width=True):
-            with st.spinner("⏳ Sending WhatsApp..."):
+            st.session_state["last_active_time"] = time.time()
+            with st.spinner(T["spinner_sending"]):
                 try:
                     webhook_url = st.secrets.get("WHATSAPP_WEBHOOK_URL", "")
                     if webhook_url:
@@ -381,20 +465,21 @@ if st.session_state.admin_mode:
                         response = requests.post(webhook_url, json=payload, timeout=10)
                         
                         if response.status_code in [200, 201]:
-                            st.success("✅ 通知發送成功！ / Sent successfully!")
+                            st.success(T["msg_send_success"])
                             st.session_state.admin_text = ""
                         else:
-                            st.error(f"❌ API 發送失敗 (Status Code: {response.status_code})")
+                            st.error(T["msg_send_failed"])
                     else:
-                        st.success("✅ (系統模擬發送) 已經紀錄並通知管業處！")
+                        st.success(T["msg_send_mock_success"])
                 except Exception as e:
-                    st.error(f"❌ 連線發生錯誤：{str(e)}")
+                    st.error(T["msg_send_failed"])
                     
         st.markdown("<br>", unsafe_allow_html=True)
         encoded_msg = urllib.parse.quote(issue_text.strip())
         st.markdown(f"<div style='text-align:center;'><a href='https://wa.me/85223646837?text={encoded_msg}' target='_blank' style='font-size:12px; color:gray; text-decoration:none;'>👉 WhatsApp Direct Link</a></div>", unsafe_allow_html=True)
 
     if st.button(T["btn_close_admin"], use_container_width=True):
+        st.session_state["last_active_time"] = time.time()
         st.session_state.admin_mode = False
         st.session_state.admin_text = ""
         st.rerun()
@@ -408,7 +493,8 @@ if not st.session_state.admin_mode:
     st.markdown("---")
     audio_input = st.audio_input(T["voice_search_label"])
     if audio_input is not None:
-        with st.spinner("🎙️ Transcribing..."):
+        st.session_state["last_active_time"] = time.time()
+        with st.spinner(T["spinner_transcribing"]):
             try:
                 transcription = client.audio.transcriptions.create(
                     model="openai/whisper-1",
@@ -417,7 +503,7 @@ if not st.session_state.admin_mode:
                 voice_prompt = transcription.text
                 st.success(f"🗣️ {voice_prompt}")
             except Exception as e:
-                st.warning("⚠️ Voice search error.")
+                st.warning(T["msg_voice_error"])
 
 # -----------------------------------------------------------------------------
 # 12. 顯示對話紀錄
@@ -434,12 +520,15 @@ user_text = st.chat_input(T["chat_placeholder"])
 final_prompt = user_text or shortcut_prompt or voice_prompt
 
 if final_prompt:
+    # 更新最後操作時間
+    st.session_state["last_active_time"] = time.time()
+    
     st.session_state.messages.append({"role": "user", "content": final_prompt})
     with st.chat_message("user"):
         st.markdown(final_prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("AI 正在處理中..."):
+        with st.spinner(T["spinner_processing"]):
             try:
                 api_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + [
                     {"role": m["role"], "content": m["content"]}
@@ -458,4 +547,4 @@ if final_prompt:
                 st.session_state.messages.append({"role": "assistant", "content": ai_reply})
 
             except Exception as e:
-                st.error(f"❌ API 呼叫失敗：{str(e)}")
+                st.error(f"❌ API Error: {str(e)}")
