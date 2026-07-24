@@ -46,7 +46,8 @@ TRANSLATIONS = {
         "msg_send_success": "✅ 通知發送成功！",
         "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管業處！",
         "msg_send_failed": "❌ 發送失敗，請稍後再試。",
-        "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。"
+        "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
+        "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再試一度發送問題。"
     },
     "繁體中文 (Traditional Chinese)": {
         "title": "🤖 志昌 AI 智能管家",
@@ -83,7 +84,8 @@ TRANSLATIONS = {
         "msg_send_success": "✅ 通知發送成功！",
         "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管理處！",
         "msg_send_failed": "❌ 發送失敗，請稍後再試。",
-        "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。"
+        "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
+        "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再次發送問題。"
     },
     "简体中文 (Simplified Chinese)": {
         "title": "🤖 志昌 AI 智能管家",
@@ -111,7 +113,7 @@ TRANSLATIONS = {
         "btn_close_admin": "❌ 关闭协助界面",
         "voice_search_label": "🎤 点击录音进行语音搜索 (Voice Search)",
         "chat_placeholder": "请输入问题...",
-        "ai_prompt_lang": "简体中文 (Simplified Chinese)",
+        "ai_prompt_lang": "规范简体中文 (Simplified Chinese)",
         "prompt_food": "请推荐土瓜湾落山道 108 号附近的热门餐厅，并附上 Google Maps 及 OpenRice 链接！",
         "prompt_trans": "请说明由土瓜湾落山道 108 号出发，如何前往土瓜湾地铁站 B 出口及附近马头围道巴士站？",
         "spinner_processing": "⏳ AI 正在处理中...",
@@ -120,7 +122,8 @@ TRANSLATIONS = {
         "msg_send_success": "✅ 通知发送成功！",
         "msg_send_mock_success": "✅ (系统模拟发送) 已经纪录并通知管理处！",
         "msg_send_failed": "❌ 发送失败，请稍后再试。",
-        "msg_voice_error": "⚠️ 语音识别失败，请重新尝试。"
+        "msg_voice_error": "⚠️ 语音识别失败，请重新尝试。",
+        "msg_api_error": "⚠️ AI 系统繁忙，请稍后再试一次。"
     },
     "English": {
         "title": "🤖 Chi Cheong AI Butler",
@@ -157,7 +160,8 @@ TRANSLATIONS = {
         "msg_send_success": "✅ Notification sent successfully!",
         "msg_send_mock_success": "✅ (Simulated) Recorded and notified Property Office!",
         "msg_send_failed": "❌ Failed to send. Please try again later.",
-        "msg_voice_error": "⚠️ Speech recognition failed. Please try again."
+        "msg_voice_error": "⚠️ Speech recognition failed. Please try again.",
+        "msg_api_error": "⚠️ AI system busy. Please try asking again."
     }
 }
 
@@ -173,12 +177,10 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 # 3. 真正的背景自動重置 (Background Auto-Refresh & Timeout Reset)
 # -----------------------------------------------------------------------------
-TIMEOUT_SECONDS = 120  # 閒置重置時間：120 秒 (2 分鐘)
+TIMEOUT_SECONDS = 120  # 閒置重置時間：120 秒
 
-# 設定網頁背景每 10 秒自動觸發一次「心跳」檢查 (10,000 毫秒)
 st_autorefresh(interval=10000, key="auto_timeout_check")
 
-# 如果已經有歷史對話或操作，但距離最後操作時間已超時 -> 自動徹底重置！
 if "last_active_time" in st.session_state:
     elapsed_time = time.time() - st.session_state["last_active_time"]
     if elapsed_time > TIMEOUT_SECONDS:
@@ -212,7 +214,33 @@ client = OpenAI(
 )
 
 # -----------------------------------------------------------------------------
-# 5. 讀取 notices.json 檔與 AI 自動翻譯/繁簡轉換函式
+# 5. 側邊欄控制面板與語言變更檢測
+# -----------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown("🌐 **Language / 語言設定**")
+    selected_language = st.radio(
+        "請選擇語言：",
+        options=list(TRANSLATIONS.keys()),
+        label_visibility="collapsed"
+    )
+
+if "prev_language" not in st.session_state:
+    st.session_state.prev_language = selected_language
+
+if st.session_state.prev_language != selected_language:
+    st.session_state.prev_language = selected_language
+    st.session_state.messages = []  # 清空對話紀錄
+    st.session_state.admin_mode = False
+    st.session_state.admin_text = ""
+    st.rerun()
+
+T = TRANSLATIONS[selected_language]
+
+st.title(T["title"])
+st.caption(T["caption"])
+
+# -----------------------------------------------------------------------------
+# 6. 讀取 notices.json 檔與 AI 自動翻譯/繁簡轉換函式
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -248,28 +276,11 @@ def translate_notice(title, content, target_lang):
     except Exception:
         return title, content
 
-# -----------------------------------------------------------------------------
-# 6. 側邊欄控制面板
-# -----------------------------------------------------------------------------
-with st.sidebar:
-    st.markdown("🌐 **Language / 語言設定**")
-    selected_language = st.radio(
-        "請選擇語言：",
-        options=list(TRANSLATIONS.keys()),
-        label_visibility="collapsed"
-    )
-
-T = TRANSLATIONS[selected_language]
-
-st.title(T["title"])
-st.caption(T["caption"])
-
 with st.sidebar:
     st.header(T["sidebar_control"])
     st.info(T["current_loc"])
     st.markdown("---")
     
-    # 📢 大廈最新通告區塊
     st.markdown(f"📢 **{T['notice_board_title']}**")
     notices = load_notices()
     
@@ -373,13 +384,11 @@ def get_real_hk_weather(lang):
 # -----------------------------------------------------------------------------
 SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed at [108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong].
 
-【STRICT ABSOLUTE RULE: LANGUAGE ENFORCEMENT】
-- The user's currently selected language is STRICTLY: 【{T['ai_prompt_lang']}】.
-- EVERY SINGLE WORD of your response (including restaurant names, direction guides, transport advice, headings, and friendly wrap-ups) MUST BE WRITTEN 100% IN 【{T['ai_prompt_lang']}】.
-- Even if raw search data or locations are in Traditional Chinese, you MUST translate and render them into 【{T['ai_prompt_lang']}】. NO language mixing allowed.
-
-【REALITY & TRUTH】
-1. All recommended restaurants, addresses, MTR exits, and bus stops MUST be real and accurate.
+【STRICT ABSOLUTE MANDATE: LANGUAGE RULE】
+- The user's chosen language is STRICTLY: 【{T['ai_prompt_lang']}】.
+- ALL of your outputs MUST be 100% written in 【{T['ai_prompt_lang']}】.
+- If the target language is "规范简体中文 (Simplified Chinese)", NEVER output any Traditional Chinese characters (例如：禁止使用「繁體字」，必須全部轉換為「规范简化字」).
+- Translate all address details, restaurant descriptions, and transport instructions completely into 【{T['ai_prompt_lang']}】.
 
 【LOCATION CONTEXT】
 - Property location: 108 Lok Shan Road, To Kwa Wan.
@@ -442,7 +451,7 @@ if st.session_state.admin_mode:
                 )
                 st.session_state.admin_text = transcription.text
                 st.rerun()
-            except Exception as e:
+            except Exception:
                 st.warning(T["msg_voice_error"])
     
     issue_text = st.text_area(
@@ -471,7 +480,7 @@ if st.session_state.admin_mode:
                             st.error(T["msg_send_failed"])
                     else:
                         st.success(T["msg_send_mock_success"])
-                except Exception as e:
+                except Exception:
                     st.error(T["msg_send_failed"])
                     
         st.markdown("<br>", unsafe_allow_html=True)
@@ -502,7 +511,7 @@ if not st.session_state.admin_mode:
                 )
                 voice_prompt = transcription.text
                 st.success(f"🗣️ {voice_prompt}")
-            except Exception as e:
+            except Exception:
                 st.warning(T["msg_voice_error"])
 
 # -----------------------------------------------------------------------------
@@ -513,14 +522,13 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # -----------------------------------------------------------------------------
-# 13. 處理輸入與 API 請求
+# 13. 處理輸入與 API 請求 (具備自動 Error Catch & 重試機制)
 # -----------------------------------------------------------------------------
 user_text = st.chat_input(T["chat_placeholder"])
 
 final_prompt = user_text or shortcut_prompt or voice_prompt
 
 if final_prompt:
-    # 更新最後操作時間
     st.session_state["last_active_time"] = time.time()
     
     st.session_state.messages.append({"role": "user", "content": final_prompt})
@@ -529,22 +537,34 @@ if final_prompt:
 
     with st.chat_message("assistant"):
         with st.spinner(T["spinner_processing"]):
-            try:
-                api_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + [
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages
-                ]
+            ai_reply = None
+            
+            # API 請求邏輯（支援自動降級/重試）
+            api_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + [
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.messages
+            ]
 
-                response = client.chat.completions.create(
-                    model="deepseek/deepseek-chat",
-                    messages=api_messages,
-                    temperature=0.1
-                )
+            models_to_try = ["deepseek/deepseek-chat", "openai/gpt-4o-mini"]
+            
+            for model_name in models_to_try:
+                try:
+                    response = client.chat.completions.create(
+                        model=model_name,
+                        messages=api_messages,
+                        temperature=0.1,
+                        timeout=15
+                    )
+                    ai_reply = response.choices[0].message.content.strip()
+                    if ai_reply:
+                        break
+                except Exception:
+                    continue
 
-                ai_reply = response.choices[0].message.content.strip()
+            if ai_reply:
                 st.markdown(ai_reply)
-
                 st.session_state.messages.append({"role": "assistant", "content": ai_reply})
-
-            except Exception as e:
-                st.error(f"❌ API Error: {str(e)}")
+            else:
+                st.error(T["msg_api_error"])
+                # 移走最後一條失敗的 user message 避免影響下一次對話
+                st.session_state.messages.pop()
