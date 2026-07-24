@@ -8,7 +8,7 @@ from openai import OpenAI
 from streamlit_autorefresh import st_autorefresh
 
 # -----------------------------------------------------------------------------
-# 1. 全語言 100% 嚴格對齊字典 (UI, Prompts & System Status Messages)
+# 1. 100% 完整多語言介面字典
 # -----------------------------------------------------------------------------
 TRANSLATIONS = {
     "廣東話 (Cantonese)": {
@@ -16,7 +16,6 @@ TRANSLATIONS = {
         "caption": "📍 服務地點：九龍土瓜灣落山道 108 號 (108 Lok Shan Road, To Kwa Wan)",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
-        "lang_select": "🌐 語言設定 / Language",
         "notice_board_title": "📢 大廈最新通告 / Notice Board",
         "no_notices": "ℹ️ 目前沒有最新通告",
         "clear_history": "🗑️ 清空聊天紀錄",
@@ -48,14 +47,13 @@ TRANSLATIONS = {
         "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管業處！",
         "msg_send_failed": "❌ 發送失敗，請稍後再試。",
         "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
-        "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再試一度發送問題。"
+        "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再試。"
     },
     "繁體中文 (Traditional Chinese)": {
         "title": "🤖 志昌 AI 智能管家",
         "caption": "📍 服務地點：九龍土瓜灣落山道 108 號 (108 Lok Shan Road, To Kwa Wan)",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
-        "lang_select": "🌐 語言設定 / Language",
         "notice_board_title": "📢 大廈最新通告 / Notice Board",
         "no_notices": "ℹ️ 目前沒有最新通告",
         "clear_history": "🗑️ 清空對話紀錄",
@@ -94,7 +92,6 @@ TRANSLATIONS = {
         "caption": "📍 服务地点：九龙土瓜湾落山道 108 号 (108 Lok Shan Road, To Kwa Wan)",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 当前定位：土瓜湾落山道 108 号",
-        "lang_select": "🌐 语言设置 / Language",
         "notice_board_title": "📢 大厦最新通告 / Notice Board",
         "no_notices": "ℹ️ 目前没有最新通告",
         "clear_history": "🗑️ 清空对话纪录",
@@ -133,7 +130,6 @@ TRANSLATIONS = {
         "caption": "📍 Location: 108 Lok Shan Road, To Kwa Wan, Kowloon",
         "sidebar_control": "⚙️ Control Panel",
         "current_loc": "📍 Current Location: 108 Lok Shan Road",
-        "lang_select": "🌐 Language Settings",
         "notice_board_title": "📢 Building Notices",
         "no_notices": "ℹ️ No notices available.",
         "clear_history": "🗑️ Clear Chat History",
@@ -213,7 +209,7 @@ client = OpenAI(
 )
 
 # -----------------------------------------------------------------------------
-# 4. 側邊欄與語言變更嚴格清空
+# 4. 側邊欄與語言選擇
 # -----------------------------------------------------------------------------
 with st.sidebar:
     st.markdown("🌐 **Language / 語言設定**")
@@ -239,7 +235,7 @@ st.title(T["title"])
 st.caption(T["caption"])
 
 # -----------------------------------------------------------------------------
-# 5. 通告 AI 強制實時翻譯 (移除快取，確保簡體字絕對轉換)
+# 5. 高效快取通告翻譯 (使用 @st.cache_data 避免重複呼叫 AI 導致卡死)
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -250,33 +246,27 @@ def load_notices():
         pass
     return []
 
-# 移除 @st.cache_data 避免快取舊語言內容
-def translate_notice(title, content, target_lang):
-    # 如果原語言與目標語言都是廣東話/繁體，可直接返回，否則強制呼叫 AI
+@st.cache_data(ttl=86400)
+def get_translated_notice(title, content, target_lang):
+    if target_lang in ["廣東話 (Cantonese)", "繁體中文 (Traditional Chinese)"]:
+        return title, content
+        
     try:
-        prompt = f"""你是一個專業的大廈通告翻譯員。
-請將以下通告標題與內容，【完全100%】翻譯或轉換成目標語言：【{target_lang}】。
+        prompt = f"""Translating building notice into: {target_lang}.
+Ensure 100% proper Simplified Chinese characters if Simplified Chinese is selected (Replace Cantonese terms like 冇, 嘅 with 没有, 的).
+Respond JSON only: {{"title": "...", "content": "..."}}
 
-【極度嚴格規則】：
-1. 若目標語言為「简体中文 (Simplified Chinese)」，必須將所有繁體字轉換為標準規範簡體字，並將所有粵語口語（例如：冇、嘅、唔該、乜野）替換為標準普通話書面語（例如：没有、的、谢谢、什么）。絕不允許出現任何繁體字或粵語詞彙！
-2. 若目標語言為「廣東話 (Cantonese)」，請使用香港地道粵語口語。
-3. 若目標語言為「繁體中文 (Traditional Chinese)」，請使用標準書面語繁體字。
-4. 若目標語言為「English」，請翻譯為標準英文。
+Title: {title}
+Content: {content}"""
 
-請嚴格僅輸出 JSON 格式：
-{{"title": "翻譯後的標題", "content": "翻譯後的內容"}}
-
-原始標題：{title}
-原始內容：{content}
-"""
-        response = client.chat.completions.create(
-            model="deepseek/deepseek-chat",
+        res = client.chat.completions.create(
+            model="openai/gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
-            temperature=0.0
+            timeout=8
         )
-        result = json.loads(response.choices[0].message.content)
-        return result.get("title", title), result.get("content", content)
+        data = json.loads(res.choices[0].message.content)
+        return data.get("title", title), data.get("content", content)
     except Exception:
         return title, content
 
@@ -295,17 +285,12 @@ with st.sidebar:
             date_str = notice.get('date', '')
             raw_content = notice.get('content', '')
             
-            # 強制每輪即時翻譯
-            translated_title, translated_content = translate_notice(
-                raw_title, 
-                raw_content, 
-                selected_language
-            )
+            t_title, t_content = get_translated_notice(raw_title, raw_content, selected_language)
             
-            with st.expander(f"【{category}】{translated_title}"):
+            with st.expander(f"【{category}】{t_title}"):
                 if date_str:
                     st.caption(f"🗓️ {date_str}")
-                st.write(translated_content)
+                st.write(t_content)
     else:
         st.caption(T["no_notices"])
 
@@ -321,7 +306,7 @@ with st.sidebar:
     st.markdown(f"{T['emergency_title']}\n{T['phone_label']}\n{T['service_label']}")
 
 # -----------------------------------------------------------------------------
-# 6. 香港天文台官方真實天氣 API (多語言對齊)
+# 6. 天文台即時官方天氣 API
 # -----------------------------------------------------------------------------
 def get_real_hk_weather(lang):
     api_lang = "tc"
@@ -345,63 +330,33 @@ def get_real_hk_weather(lang):
         
         if lang == "English":
             warning_str = " | ".join(warnings) if warnings else "No special weather warnings"
-            return f"""🌤️ **Hong Kong Observatory Real-time Weather Report:**
-- 📍 **Kowloon City / To Kwa Wan Temp**: {kowloon_temp}°C
-- 💧 **Relative Humidity**: {humidity}%
-- ⚠️ **Current Warnings**: {warning_str}
-- 🔗 [Hong Kong Observatory Official Website](https://www.hko.gov.hk/en/index.html)"""
-
+            return f"🌤️ **Hong Kong Observatory Real-time Weather Report:**\n- 📍 **Kowloon City Temp**: {kowloon_temp}°C\n- 💧 **Humidity**: {humidity}%\n- ⚠️ **Warnings**: {warning_str}\n- 🔗 [Official HKO Site](https://www.hko.gov.hk/en/index.html)"
         elif lang == "简体中文 (Simplified Chinese)":
             warning_str = " | ".join(warnings) if warnings else "目前无特别天气警告"
-            return f"""🌤️ **香港天文台实时官方天气报告：**
-- 📍 **九龙城/土瓜湾区气温**：{kowloon_temp}°C
-- 💧 **相对湿度**：{humidity}%
-- ⚠️ **现时天气警告**：{warning_str}
-- 🔗 [点击查看香港天文台官方网站](https://www.hko.gov.hk/sc/index.html)"""
-
+            return f"🌤️ **香港天文台实时官方天气报告：**\n- 📍 **九龙城/土瓜湾区气温**：{kowloon_temp}°C\n- 💧 **相对湿度**：{humidity}%\n- ⚠️ **现时天气警告**：{warning_str}\n- 🔗 [点击查看香港天文台官方网站](https://www.hko.gov.hk/sc/index.html)"
         elif lang == "繁體中文 (Traditional Chinese)":
             warning_str = " | ".join(warnings) if warnings else "目前無特別天氣警告"
-            return f"""🌤️ **香港天文台實時官方天氣報告：**
-- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C
-- 💧 **相對濕度**：{humidity}%
-- ⚠️ **現時天氣警告**：{warning_str}
-- 🔗 [點擊查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"""
-
-        else: # 廣東話
+            return f"🌤️ **香港天文台實時官方天氣報告：**\n- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C\n- 💧 **相對濕度**：{humidity}%\n- ⚠️ **現時天氣警告**：{warning_str}\n- 🔗 [點擊查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"
+        else:
             warning_str = " | ".join(warnings) if warnings else "目前冇特別天氣警告"
-            return f"""🌤️ **香港天文台即時官方天氣報告：**
-- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C
-- 💧 **相對濕度**：{humidity}%
-- ⚠️ **現時天氣警告**：{warning_str}
-- 🔗 [點此查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"""
-
+            return f"🌤️ **香港天文台即時官方天氣報告：**\n- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C\n- 💧 **相對濕度**：{humidity}%\n- ⚠️ **現時天氣警告**：{warning_str}\n- 🔗 [點此查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"
     except Exception:
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 7. System Prompt (零虛構 + 100% 語言對齊)
+# 7. System Prompt (嚴格語系與真實數據)
 # -----------------------------------------------------------------------------
 SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed ONLY at 108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong.
 
-【STRICT MANDATE 1: 100% LANGUAGE ALIGNMENT】
-- Output language: ONLY 【{T['ai_prompt_lang']}】.
-- Instruction: {T['ai_style_instruction']}
-
-【STRICT MANDATE 2: 100% FACTUALITY (NO HALLUCINATION)】
-- Location: 108 Lok Shan Road, To Kwa Wan, Hong Kong.
-- MTR: To Kwa Wan Station, Exit B (Walk approx. 3-5 mins via To Kwa Wan Road / Lok Shan Road).
-- Major Bus Stops: Ma Tau Wai Road / To Kwa Wan Road (Buses: 5C, 11X, 21, 26, 85X, 116).
-- Do NOT invent non-existent bus routes, non-existent MTR exits, or fake locations.
-
-【RESTAURANT SEARCH LINK GENERATION】
-When user asks for restaurants, provide REAL and popular restaurants near To Kwa Wan Lok Shan Road.
-For EACH restaurant, generate valid search URLs:
-- Google Maps: `https://www.google.com/maps/search/?api=1&query=` (URL encoded restaurant name + To Kwa Wan)
-- OpenRice: `https://www.openrice.com/zh/hongkong/restaurants?where=` (URL encoded restaurant name)
+【STRICT MANDATE】
+1. Response Language: STRICTLY 【{T['ai_prompt_lang']}】.
+2. Style Instruction: {T['ai_style_instruction']}
+3. Absolute Truth: Location is 108 Lok Shan Road. Nearest MTR: To Kwa Wan Station Exit B. Buses: 5C, 11X, 21, 26, 85X, 116.
+4. Food Queries: Provide real restaurants with Google Maps and OpenRice links.
 """
 
 # -----------------------------------------------------------------------------
-# 8. 快捷按鈕區 (Callback 確保 100% 響應)
+# 8. 快捷按鈕
 # -----------------------------------------------------------------------------
 st.markdown(T["shortcut_header"])
 
@@ -467,8 +422,7 @@ if st.session_state.admin_mode:
                             "phone": "85223646837",
                             "message": f"🤖【志昌智能管家】\n📍 地點：土瓜灣落山道 108 號\n⚠️ 事項：{issue_text.strip()}"
                         }
-                        response = requests.post(webhook_url, json=payload, timeout=10)
-                        
+                        response = requests.post(webhook_url, json=payload, timeout=5)
                         if response.status_code in [200, 201]:
                             st.success(T["msg_send_success"])
                             st.session_state.admin_text = ""
@@ -510,7 +464,7 @@ if not st.session_state.admin_mode:
                 st.warning(T["msg_voice_error"])
 
 # -----------------------------------------------------------------------------
-# 11. 顯示對話紀錄
+# 11. 對話紀錄顯示
 # -----------------------------------------------------------------------------
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -527,7 +481,7 @@ if user_text:
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# 13. AI 核心回答處理 (溫度調至 0.0 保障絕對真實，並雙模型備用)
+# 13. AI 核心發送（改用極速 gpt-4o-mini 首選，防止連線延遲）
 # -----------------------------------------------------------------------------
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     with st.chat_message("assistant"):
@@ -538,26 +492,26 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 for m in st.session_state.messages
             ]
 
-            models_to_try = ["deepseek/deepseek-chat", "openai/gpt-4o-mini"]
-            last_error = ""
+            models_to_try = ["openai/gpt-4o-mini", "deepseek/deepseek-chat"]
+            last_err = ""
 
-            for model_name in models_to_try:
+            for m in models_to_try:
                 try:
-                    response = client.chat.completions.create(
-                        model=model_name,
+                    res = client.chat.completions.create(
+                        model=m,
                         messages=api_messages,
-                        temperature=0.0,
-                        timeout=20
+                        temperature=0.1,
+                        timeout=12
                     )
-                    ai_reply = response.choices[0].message.content.strip()
+                    ai_reply = res.choices[0].message.content.strip()
                     if ai_reply:
                         break
                 except Exception as e:
-                    last_error = str(e)
+                    last_err = str(e)
                     continue
 
             if ai_reply:
                 st.session_state.messages.append({"role": "assistant", "content": ai_reply})
                 st.rerun()
             else:
-                st.error(f"❌ API 請求失敗，詳細原因：`{last_error}`")
+                st.error(f"❌ 連線逾時或 API 錯誤，請檢查 OpenRouter 點數或 Secrets 設定。錯誤：`{last_err}`")
