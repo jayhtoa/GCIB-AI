@@ -23,7 +23,7 @@ TRANSLATIONS = {
         "phone_label": "* 電話：`23646837`",
         "service_label": "* 服務：報修 / 設備協助",
         "shortcut_header": "##### ⚡ 快捷按鈕：",
-        "btn_food": "🍱 附近美食",
+        "btn_food": "🍱 樓下/超近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
         "btn_admin": "🛠️ 管理員協助",
@@ -38,7 +38,7 @@ TRANSLATIONS = {
         "chat_placeholder": "請輸入問題...",
         "ai_prompt_lang": "廣東話 (Cantonese)",
         "ai_style_instruction": "必須全程使用純正口語廣東話（粵語）回答。所有地址、交通與餐廳資訊必須 100% 真實，嚴禁捏造虛假資料。",
-        "prompt_food": "請推薦土瓜灣落山道 108 號附近的真實熱門餐廳，並附上 Google Maps 同 OpenRice 搜尋連結！",
+        "prompt_food": "請推薦落山道 108 號樓下及 1 分鐘步程內（落山道/美華工業中心周邊）嘅真實餐廳，並附上正確嘅 Google Maps 同 OpenRice 連結！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，點去土瓜灣地鐵站 B 出口同附近馬頭圍道巴士站？",
         "spinner_processing": "⏳ AI 正在處理中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
@@ -61,7 +61,7 @@ TRANSLATIONS = {
         "phone_label": "* 電話：`23646837`",
         "service_label": "* 服務：報修 / 設備協助",
         "shortcut_header": "##### ⚡ 快捷按鈕：",
-        "btn_food": "🍱 附近美食",
+        "btn_food": "🍱 樓下/超近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
         "btn_admin": "🛠️ 管理員協助",
@@ -76,7 +76,7 @@ TRANSLATIONS = {
         "chat_placeholder": "請輸入問題...",
         "ai_prompt_lang": "繁體中文 (Traditional Chinese)",
         "ai_style_instruction": "必須全程使用規範繁體中文（書面語）回答。所有地址、交通與餐廳資訊必須 100% 真實，嚴禁捏造虛假資料。",
-        "prompt_food": "請推薦土瓜灣落山道 108 號附近的真實熱門餐廳，並附上 Google Maps 及 OpenRice 搜尋連結！",
+        "prompt_food": "請推薦落山道 108 號樓下及 1 分鐘步行距離內（落山道/美華工業中心周邊）的真實餐廳，並附上正確的 Google Maps 及 OpenRice 連結！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，如何前往土瓜灣地鐵站 B 出口及附近馬頭圍道巴士站？",
         "spinner_processing": "⏳ AI 正在處理中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
@@ -99,7 +99,7 @@ TRANSLATIONS = {
         "phone_label": "* 电话：`23646837`",
         "service_label": "* 服务：报修 / 设备协助",
         "shortcut_header": "##### ⚡ 快捷按钮：",
-        "btn_food": "🍱 附近美食",
+        "btn_food": "🍱 楼下/超近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 实时天气",
         "btn_admin": "🛠️ 管理员协助",
@@ -114,7 +114,7 @@ TRANSLATIONS = {
         "chat_placeholder": "请输入问题...",
         "ai_prompt_lang": "规范简体中文 (Simplified Chinese)",
         "ai_style_instruction": "必须全程使用规范简化字回答，绝对禁止出现任何繁体字或粤语口语。所有地址、交通与餐厅信息必须 100% 真实，严禁虚构假信息。",
-        "prompt_food": "请推荐土瓜湾落山道 108 号附近的真实热门餐厅，并附上 Google Maps 及 OpenRice 搜索链接！",
+        "prompt_food": "请推荐落山道 108 号楼下及 1 分钟步行距离内（落山道/美华工业中心周边）的真实餐厅，并附上正确的 Google Maps 及 OpenRice 链接！",
         "prompt_trans": "请说明由土瓜湾落山道 108 号出发，如何前往土瓜湾地铁站 B 出口及附近马头围道巴士站？",
         "spinner_processing": "⏳ AI 正在处理中...",
         "spinner_transcribing": "🎙️ 正在转换语音为文字...",
@@ -137,7 +137,7 @@ TRANSLATIONS = {
         "phone_label": "* Phone: `23646837`",
         "service_label": "* Services: Repairs / Facility Assistance",
         "shortcut_header": "##### ⚡ Quick Buttons:",
-        "btn_food": "🍱 Nearby Food",
+        "btn_food": "🍱 Extremely Nearby Food",
         "btn_trans": "🚌 Transportation",
         "btn_weather": "🌤️ Live Weather",
         "btn_admin": "🛠️ Admin Help",
@@ -152,7 +152,7 @@ TRANSLATIONS = {
         "chat_placeholder": "Ask a question...",
         "ai_prompt_lang": "English",
         "ai_style_instruction": "You MUST answer 100% in professional English. All location, transit, and restaurant details MUST be factual and real.",
-        "prompt_food": "Please recommend real top nearby popular restaurants around 108 Lok Shan Road with Google Maps and OpenRice links!",
+        "prompt_food": "Please recommend real restaurants located right at or within 1 minute walk of 108 Lok Shan Road (Lok Shan Road & Merit Industrial Centre area) with Google Maps and OpenRice links!",
         "prompt_trans": "Please explain how to get to To Kwa Wan MTR Station Exit B and nearby bus stops from 108 Lok Shan Road factual path.",
         "spinner_processing": "⏳ AI is processing...",
         "spinner_transcribing": "🎙️ Transcribing audio...",
@@ -344,24 +344,35 @@ def get_real_hk_weather(lang):
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 7. System Prompt (精準網址格式指令)
+# 7. System Prompt (精準限定：落山道 108 號樓下 / 1 分鐘步程)
 # -----------------------------------------------------------------------------
 SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed ONLY at 108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong.
 
-【STRICT MANDATE】
-1. Response Language: STRICTLY 【{T['ai_prompt_lang']}】.
-2. Style Instruction: {T['ai_style_instruction']}
-3. Real Places Near 108 Lok Shan Road:
-   - 遙 Haruka Japanese Restaurant (Address: G/F, 1A Lok Shan Road, To Kwa Wan - 1 min walk)
-   - 楚撚記大排檔 Chor Lun Kee (Address: Pok Kwong Building, To Kwa Wan)
-   - HeySoNuts Cafe (Address: Shop 3, G/F, 149 Pak Tai Street, To Kwa Wan)
-   - 哥登堡餐廳 Gothenburg Restaurant (Address: 423 Ma Tau Wai Road)
+【STRICT MANDATE FOR RESTAURANT QUERIES】
+When asked for nearby food, you MUST prioritize real venues located EXACTLY on Lok Shan Road or inside/next to Merit Industrial Centre (美華工業中心, Lok Shan Road 108).
 
-4. URL LINK GENERATION RULES (CRITICAL):
-   - ONLY output standard, valid web links for Google Maps and OpenRice using URL-encoded terms!
-   - Google Maps Format: `https://www.google.com/maps/search/?api=1&query=<URL_ENCODED_RESTAURANT_NAME_AND_LOCATION>`
-   - OpenRice Format: `https://www.openrice.com/zh/hongkong/restaurants?where=<URL_ENCODED_RESTAURANT_NAME>`
-   - DO NOT make up fake domain names or invalid link paths.
+REAL RESTAURANTS RIGHT AT / ADJACENT TO 108 LOK SHAN ROAD:
+1. 遙 Haruka (日式居酒屋/拉麵/串燒)
+   - Address: 九龍土瓜灣落山道 1 號 A 地舖 (步行約 1 分鐘，落山道沿路)
+   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E9%81%99+Haruka+%E5%9C%9F%E7%93%9C%E7%81%A3%E8%90%BD%E5%B1%B1%E9%81%93)
+   - OpenRice: [OpenRice Search](https://www.openrice.com/zh/hongkong/restaurants?where=%E9%81%99+Haruka+%E5%9C%9F%E7%93%9C%E7%81%A3)
+
+2. 美華工業中心食堂 / 樓下茶餐廳 (Merit Industrial Centre Food Outlets)
+   - Address: 土瓜灣落山道 108 號美華工業中心地下及周邊
+   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E7%BE%8E%E8%8F%AF%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83+%E9%A4%90%E5%BB%B3)
+   - OpenRice: [OpenRice Search](https://www.openrice.com/zh/hongkong/restaurants?where=%E7%BE%8E%E8%8F%AF%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83)
+
+3. 聯發茶餐廳 / 落山道街坊冰室 (Lok Shan Road Local Cafe)
+   - Address: 土瓜灣落山道沿路 (1-2 分鐘步程)
+   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E5%9C%9F%E7%93%9C%E7%81%A3%E8%90%BD%E5%B1%B1%E9%81%93+%E8%8C%B6%E9%A4%90%E5%BB%B3)
+
+4. 哥登堡餐廳 Gothenburg Restaurant (懷舊扒房)
+   - Address: 土瓜灣馬頭圍道 423 號 (落山道交界轉角位，步行約 1 分鐘)
+   - Google Maps: [Google Maps](https://www.google.com/maps/search/?api=1&query=%E5%93%A5%E7%99%BB%E5%A0%A1%E9%A4%90%E5%BB%B3+%E5%9C%9F%E7%93%9C%E7%81%A3)
+   - OpenRice: [OpenRice Search](https://www.openrice.com/zh/hongkong/restaurants?where=%E5%93%A5%E7%99%BB%E5%A0%A1%E9%A4%90%E5%BB%B3)
+
+Response Language: STRICTLY 【{T['ai_prompt_lang']}】.
+Style Instruction: {T['ai_style_instruction']}
 """
 
 # -----------------------------------------------------------------------------
