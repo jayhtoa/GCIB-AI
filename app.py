@@ -8,7 +8,7 @@ from openai import OpenAI
 from streamlit_autorefresh import st_autorefresh
 
 # -----------------------------------------------------------------------------
-# 1. 100% 完整多語言介面字典
+# 1. 100% 完整多語言介面字典 (已還原快捷鍵名稱)
 # -----------------------------------------------------------------------------
 TRANSLATIONS = {
     "廣東話 (Cantonese)": {
@@ -23,7 +23,7 @@ TRANSLATIONS = {
         "phone_label": "* 電話：`23646837`",
         "service_label": "* 服務：報修 / 設備協助",
         "shortcut_header": "##### ⚡ 快捷按鈕：",
-        "btn_food": "🍱 樓下/超近美食",
+        "btn_food": "🍱 附近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
         "btn_admin": "🛠️ 管理員協助",
@@ -61,7 +61,7 @@ TRANSLATIONS = {
         "phone_label": "* 電話：`23646837`",
         "service_label": "* 服務：報修 / 設備協助",
         "shortcut_header": "##### ⚡ 快捷按鈕：",
-        "btn_food": "🍱 樓下/超近美食",
+        "btn_food": "🍱 附近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
         "btn_admin": "🛠️ 管理員協助",
@@ -99,7 +99,7 @@ TRANSLATIONS = {
         "phone_label": "* 电话：`23646837`",
         "service_label": "* 服务：报修 / 设备协助",
         "shortcut_header": "##### ⚡ 快捷按钮：",
-        "btn_food": "🍱 楼下/超近美食",
+        "btn_food": "🍱 附近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 实时天气",
         "btn_admin": "🛠️ 管理员协助",
@@ -137,7 +137,7 @@ TRANSLATIONS = {
         "phone_label": "* Phone: `23646837`",
         "service_label": "* Services: Repairs / Facility Assistance",
         "shortcut_header": "##### ⚡ Quick Buttons:",
-        "btn_food": "🍱 Extremely Nearby Food",
+        "btn_food": "🍱 Nearby Food",
         "btn_trans": "🚌 Transportation",
         "btn_weather": "🌤️ Live Weather",
         "btn_admin": "🛠️ Admin Help",
