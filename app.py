@@ -1,4 +1,5 @@
 import os
+import json
 import urllib.parse
 import requests
 import streamlit as st
@@ -14,6 +15,8 @@ TRANSLATIONS = {
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
         "lang_select": "🌐 語言設定 / Language",
+        "notice_board_title": "📢 大廈最新通告 / Notice Board",
+        "no_notices": "ℹ️ 目前沒有最新通告",
         "clear_history": "🗑️ 清空聊天紀錄",
         "emergency_title": "📞 管業處緊急聯絡：",
         "phone_label": "* 電話：`23646837`",
@@ -40,6 +43,8 @@ TRANSLATIONS = {
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
         "lang_select": "🌐 語言設定 / Language",
+        "notice_board_title": "📢 大廈最新通告 / Notice Board",
+        "no_notices": "ℹ️ 目前沒有最新通告",
         "clear_history": "🗑️ 清空對話紀錄",
         "emergency_title": "📞 管理處緊急聯絡：",
         "phone_label": "* 電話：`23646837`",
@@ -66,6 +71,8 @@ TRANSLATIONS = {
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 当前定位：土瓜湾落山道 108 号",
         "lang_select": "🌐 语言设置 / Language",
+        "notice_board_title": "📢 大厦最新通告 / Notice Board",
+        "no_notices": "ℹ️ 目前没有最新通告",
         "clear_history": "🗑️ 清空对话纪录",
         "emergency_title": "📞 管理处紧急联络：",
         "phone_label": "* 电话：`23646837`",
@@ -92,6 +99,8 @@ TRANSLATIONS = {
         "sidebar_control": "⚙️ Control Panel",
         "current_loc": "📍 Current Location: 108 Lok Shan Road",
         "lang_select": "🌐 Language Settings",
+        "notice_board_title": "📢 Building Notices",
+        "no_notices": "ℹ️ No notices available.",
         "clear_history": "🗑️ Clear Chat History",
         "emergency_title": "📞 Property Office Hotline:",
         "phone_label": "* Phone: `23646837`",
@@ -134,7 +143,19 @@ if "admin_text" not in st.session_state:
     st.session_state.admin_text = ""
 
 # -----------------------------------------------------------------------------
-# 4. 側邊欄控制面板 (多語言選擇器)
+# 讀取 notices.json 檔 (安全載入)
+# -----------------------------------------------------------------------------
+def load_notices():
+    try:
+        if os.path.exists("notices.json"):
+            with open("notices.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return []
+
+# -----------------------------------------------------------------------------
+# 4. 側邊欄控制面板 (包含語言切換與動態通告)
 # -----------------------------------------------------------------------------
 with st.sidebar:
     st.markdown("🌐 **Language / 語言設定**")
@@ -154,6 +175,26 @@ st.caption(T["caption"])
 with st.sidebar:
     st.header(T["sidebar_control"])
     st.info(T["current_loc"])
+    st.markdown("---")
+    
+    # 📢 大廈最新通告區塊 (讀取 notices.json)
+    st.markdown(f"📢 **{T['notice_board_title']}**")
+    notices = load_notices()
+    
+    if notices:
+        for notice in notices:
+            category = notice.get('category', '通告')
+            title = notice.get('title', '無標題')
+            date_str = notice.get('date', '')
+            content = notice.get('content', '')
+            
+            with st.expander(f"【{category}】{title}"):
+                if date_str:
+                    st.caption(f"🗓️ 發布日期：{date_str}")
+                st.write(content)
+    else:
+        st.caption(T["no_notices"])
+
     st.markdown("---")
     if st.button(T["clear_history"], use_container_width=True):
         st.session_state.messages = []
@@ -204,13 +245,17 @@ def get_real_hk_weather():
         return "⚠️ 天氣 API 連線暫時繁忙，請直接點擊 [香港天文台官網](https://www.hko.gov.hk/tc/index.html) 查看實時天氣。"
 
 # -----------------------------------------------------------------------------
-# 7. 動態 System Prompt (連動Selected Language)
+# 7. 動態 System Prompt (連動 Selected Language - 強制語言輸出)
 # -----------------------------------------------------------------------------
 SYSTEM_PROMPT = f"""你係「志昌 AI 智能管家」，服務地位於【香港九龍土瓜灣落山道 108 號】。
 
-【嚴格真實性與語言原則】
+【最高指令：語言強制規定（最高優先級！）】
+- 使用者目前選擇的語言是：【{T['ai_prompt_lang']}】。
+- 你的**整個回覆內容**（包括餐廳名稱介紹、地址描述、交通指引、結語等）必須【完全且100%】使用【{T['ai_prompt_lang']}】撰寫。
+- 即使資料庫或搜尋結果是繁體中文或其他語言，你也【必須翻譯並轉換】為【{T['ai_prompt_lang']}】後才輸出！絕不可出現混合語言。
+
+【嚴格真實性原則】
 1. 所有介紹的餐廳、地址、地鐵出口必須為真實存在資料。
-2. 語言規定：請嚴格使用【{T['ai_prompt_lang']}】來回覆使用者所有問題！
 
 【跨區搜尋與交通規則】
 - 如果使用者尋找「土瓜灣以外」的其他地區（例如 Soho、中環、旺角等）的餐廳或設施，你必須「只推薦該目標地區」的真實地點，絕對不要混入土瓜灣區的餐廳。
@@ -255,7 +300,7 @@ with col4:
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# 9. 專屬「管理員協助」版面 (動態語言 UI)
+# 9. 專屬「管理員協助」版面
 # -----------------------------------------------------------------------------
 if st.session_state.admin_mode:
     st.markdown("---")
