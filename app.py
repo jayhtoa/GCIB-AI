@@ -38,7 +38,7 @@ TRANSLATIONS = {
         "chat_placeholder": "請輸入問題...",
         "ai_prompt_lang": "廣東話 (Cantonese)",
         "ai_style_instruction": "必須全程使用純正口語廣東話（粵語）回答。所有地址、交通與餐廳資訊必須 100% 真實，嚴禁捏造虛假資料。",
-        "prompt_food": "請推薦落山道 108 號樓下及 1 分鐘步程內（落山道/美華工業中心周邊）嘅真實餐廳，並附上正確嘅 Google Maps 同 OpenRice 連結！",
+        "prompt_food": "請推薦 3 至 5 間落山道 108 號樓下及 1 分鐘步程內（落山道/美華工業中心周邊）嘅真實餐廳，並附上正確嘅 Google Maps 同 OpenRice 連結同路線建議！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，點去土瓜灣地鐵站 B 出口同附近馬頭圍道巴士站？",
         "spinner_processing": "⏳ AI 正在處理中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
@@ -76,7 +76,7 @@ TRANSLATIONS = {
         "chat_placeholder": "請輸入問題...",
         "ai_prompt_lang": "繁體中文 (Traditional Chinese)",
         "ai_style_instruction": "必須全程使用規範繁體中文（書面語）回答。所有地址、交通與餐廳資訊必須 100% 真實，嚴禁捏造虛假資料。",
-        "prompt_food": "請推薦落山道 108 號樓下及 1 分鐘步行距離內（落山道/美華工業中心周邊）的真實餐廳，並附上正確的 Google Maps 及 OpenRice 連結！",
+        "prompt_food": "請推薦 3 至 5 間落山道 108 號樓下及 1 分鐘步行距離內（落山道/美華工業中心周邊）的真實餐廳，並附上正確的 Google Maps 及 OpenRice 連結與路線建議！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，如何前往土瓜灣地鐵站 B 出口及附近馬頭圍道巴士站？",
         "spinner_processing": "⏳ AI 正在處理中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
@@ -114,7 +114,7 @@ TRANSLATIONS = {
         "chat_placeholder": "请输入问题...",
         "ai_prompt_lang": "规范简体中文 (Simplified Chinese)",
         "ai_style_instruction": "必须全程使用规范简化字回答，绝对禁止出现任何繁体字或粤语口语。所有地址、交通与餐厅信息必须 100% 真实，严禁虚构假信息。",
-        "prompt_food": "请推荐落山道 108 号楼下及 1 分钟步行距离内（落山道/美华工业中心周边）的真实餐厅，并附上正确的 Google Maps 及 OpenRice 链接！",
+        "prompt_food": "请推荐 3 至 5 家落山道 108 号楼下及 1 分钟步行距离内（落山道/美华工业中心周边）的真实餐厅，并附上正确的 Google Maps 及 OpenRice 链接与路线建议！",
         "prompt_trans": "请说明由土瓜湾落山道 108 号出发，如何前往土瓜湾地铁站 B 出口及附近马头围道巴士站？",
         "spinner_processing": "⏳ AI 正在处理中...",
         "spinner_transcribing": "🎙️ 正在转换语音为文字...",
@@ -152,7 +152,7 @@ TRANSLATIONS = {
         "chat_placeholder": "Ask a question...",
         "ai_prompt_lang": "English",
         "ai_style_instruction": "You MUST answer 100% in professional English. All location, transit, and restaurant details MUST be factual and real.",
-        "prompt_food": "Please recommend real restaurants located right at or within 1 minute walk of 108 Lok Shan Road (Lok Shan Road & Merit Industrial Centre area) with Google Maps and OpenRice links!",
+        "prompt_food": "Please recommend 3 to 5 real restaurants located right at or within 1 minute walk of 108 Lok Shan Road (Lok Shan Road & Merit Industrial Centre area) with Google Maps and OpenRice links and route tips!",
         "prompt_trans": "Please explain how to get to To Kwa Wan MTR Station Exit B and nearby bus stops from 108 Lok Shan Road factual path.",
         "spinner_processing": "⏳ AI is processing...",
         "spinner_transcribing": "🎙️ Transcribing audio...",
@@ -343,19 +343,23 @@ def get_real_hk_weather(lang):
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 7. System Prompt (全港搜尋 + 強制附帶 Google Maps, OpenRice 及路線建議)
+# 7. System Prompt (全港搜尋 + 強制提供 3-5 個選項 + 地圖/OpenRice/路線)
 # -----------------------------------------------------------------------------
 SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed at 108 Lok Shan Road, To Kwa Wan, Hong Kong.
 
 【UNIVERSAL SEARCH & RECOMMENDATION MANDATE】
-1. SEARCH SCOPE: You MUST search and recommend venues across ALL OF HONG KONG (Central, Soho, Tsim Sha Tsui, Causeway Bay, Mong Kok, etc.) based on user input. DO NOT restrict or redirect queries to Lok Shan Road unless the user asks for "附近" or uses the quick button.
+1. SEARCH SCOPE: You MUST search and recommend venues across ALL OF HONG KONG (Central, Soho, Tsim Sha Tsui, Causeway Bay, Mong Kok, etc.) based on user input. DO NOT restrict queries to Lok Shan Road unless explicitly asked.
 
-2. FOR ALL PLACE/RESTAURANT/BAR RECOMMENDATIONS (ALL HONG KONG):
-   For EVERY recommended venue, you MUST strictly include the following 4 elements:
-   - 📍 **Address** (Exact location)
-   - 🗺️ **Google Maps Link**: Generate URL using format `https://www.google.com/maps/search/?api=1&query=ENCODED_NAME_AND_DISTRICT`
-   - 🍽️ **OpenRice Link**: Generate search/booking URL using format `https://www.openrice.com/zh/hongkong/restaurants?where=ENCODED_NAME` (For booking and reviews)
-   - 🚌 **Route / Transport Advice**: Provide concise route suggestion (e.g., nearest MTR exit, or transit from To Kwa Wan / Lok Shan Road if relevant).
+2. MULTIPLE OPTIONS REQUIRED:
+   When recommending places, restaurants, or bars, NEVER give only 1 option!
+   You MUST ALWAYS provide **3 to 5 DISTINCT, HIGH-QUALITY OPTIONS** for the user to choose from.
+
+3. REQUIRED DETAILS FOR EVERY RECOMMENDED VENUE:
+   For EACH of the 3 to 5 options, strictly include:
+   - 📍 **Address & Feature**: Exact address and brief style/feature.
+   - 🗺️ **Google Maps Link**: `https://www.google.com/maps/search/?api=1&query=ENCODED_NAME_AND_DISTRICT`
+   - 🍽️ **OpenRice Link**: `https://www.openrice.com/zh/hongkong/restaurants?where=ENCODED_NAME` (for booking/reviews)
+   - 🚌 **Route / Transit Advice**: Nearest MTR exit or transport suggestion (e.g. how to get there).
 
 Response Language: STRICTLY 【{T['ai_prompt_lang']}】.
 Style Instruction: {T['ai_style_instruction']}
