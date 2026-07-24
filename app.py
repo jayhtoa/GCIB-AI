@@ -157,7 +157,7 @@ client = OpenAI(
 )
 
 # -----------------------------------------------------------------------------
-# 5. 讀取 notices.json 檔與 AI 自動翻譯函式
+# 5. 讀取 notices.json 檔與 AI 自動翻譯/繁簡轉換函式
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -170,12 +170,13 @@ def load_notices():
 
 @st.cache_data(ttl=3600)  # 快取 1 小時，節省 API Calls 與提高載入速度
 def translate_notice(title, content, target_lang):
-    # 若為廣東話或繁體中文，無須額外呼叫 API 翻譯
+    # 只有揀廣東話或繁體中文時先跳過（因為 JSON 原文係繁體）
     if target_lang in ["廣東話 (Cantonese)", "繁體中文 (Traditional Chinese)"]:
         return title, content
 
     try:
-        prompt = f"""請將以下大廈通告標題與內容翻譯成【{target_lang}】。
+        prompt = f"""請將以下大廈通告標題與內容翻譯或轉換成【{target_lang}】。
+如果目標語言是簡體中文 (Simplified Chinese)，請務必將所有繁體字轉換為規範簡體字。
 請嚴格以 JSON 格式回覆，格式如下：
 {{"title": "翻譯後的標題", "content": "翻譯後的內容"}}
 
@@ -216,7 +217,7 @@ with st.sidebar:
     st.info(T["current_loc"])
     st.markdown("---")
     
-    # 📢 大廈最新通告區塊 (支援 AI 多語言自動翻譯)
+    # 📢 大廈最新通告區塊 (支援 AI 多語言自動翻譯/繁簡轉換)
     st.markdown(f"📢 **{T['notice_board_title']}**")
     notices = load_notices()
     
