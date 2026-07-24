@@ -239,7 +239,7 @@ st.title(T["title"])
 st.caption(T["caption"])
 
 # -----------------------------------------------------------------------------
-# 5. 通告 AI 100% 精確語言翻譯 (嚴格防混雜)
+# 5. 通告 AI 強制實時翻譯 (移除快取，確保簡體字絕對轉換)
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -250,23 +250,24 @@ def load_notices():
         pass
     return []
 
-@st.cache_data(ttl=3600)
+# 移除 @st.cache_data 避免快取舊語言內容
 def translate_notice(title, content, target_lang):
+    # 如果原語言與目標語言都是廣東話/繁體，可直接返回，否則強制呼叫 AI
     try:
-        prompt = f"""You are a professional translator for building notices.
-Translate/Convert the following title and content STRICTLY into target language: 【{target_lang}】.
+        prompt = f"""你是一個專業的大廈通告翻譯員。
+請將以下通告標題與內容，【完全100%】翻譯或轉換成目標語言：【{target_lang}】。
 
-STRICT RULES:
-- If target language is "廣東話 (Cantonese)", use natural Hong Kong spoken Cantonese.
-- If target language is "繁體中文 (Traditional Chinese)", use Standard Written Traditional Chinese.
-- If target language is "规范简体中文 (Simplified Chinese)", use Standard Simplified Chinese. NO Traditional Chinese characters allowed!
-- If target language is "English", translate strictly to English.
+【極度嚴格規則】：
+1. 若目標語言為「简体中文 (Simplified Chinese)」，必須將所有繁體字轉換為標準規範簡體字，並將所有粵語口語（例如：冇、嘅、唔該、乜野）替換為標準普通話書面語（例如：没有、的、谢谢、什么）。絕不允許出現任何繁體字或粵語詞彙！
+2. 若目標語言為「廣東話 (Cantonese)」，請使用香港地道粵語口語。
+3. 若目標語言為「繁體中文 (Traditional Chinese)」，請使用標準書面語繁體字。
+4. 若目標語言為「English」，請翻譯為標準英文。
 
-Output JSON only:
-{{"title": "translated_title", "content": "translated_content"}}
+請嚴格僅輸出 JSON 格式：
+{{"title": "翻譯後的標題", "content": "翻譯後的內容"}}
 
-Original Title: {title}
-Original Content: {content}
+原始標題：{title}
+原始內容：{content}
 """
         response = client.chat.completions.create(
             model="deepseek/deepseek-chat",
@@ -294,6 +295,7 @@ with st.sidebar:
             date_str = notice.get('date', '')
             raw_content = notice.get('content', '')
             
+            # 強制每輪即時翻譯
             translated_title, translated_content = translate_notice(
                 raw_title, 
                 raw_content, 
@@ -544,7 +546,7 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                     response = client.chat.completions.create(
                         model=model_name,
                         messages=api_messages,
-                        temperature=0.0, # 溫度極低，拒絕AI瞎編
+                        temperature=0.0,
                         timeout=20
                     )
                     ai_reply = response.choices[0].message.content.strip()
