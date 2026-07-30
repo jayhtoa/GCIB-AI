@@ -8,158 +8,106 @@ from openai import OpenAI
 from streamlit_autorefresh import st_autorefresh
 
 # -----------------------------------------------------------------------------
-# 1. 100% 完整多語言介面字典 (完全保留原樣)
+# 1. 100% 完整多語言介面字典 (快捷按鈕名稱維持原樣)
 # -----------------------------------------------------------------------------
 TRANSLATIONS = {
     "廣東話 (Cantonese)": {
-        "title": "🤖 志昌 AI 智能管家",
-        "caption": "📍 服務地點：九龍土瓜灣落山道 108 號 (108 Lok Shan Road, To Kwa Wan)",
+        "title": "🤖 志昌 AI 智能助手",
+        "caption": "📍 隨時為你解答任何問題 | 美食、交通、天氣及生活百事",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
         "notice_board_title": "📢 大廈最新通告 / Notice Board",
         "no_notices": "ℹ️ 目前沒有最新通告",
         "clear_history": "🗑️ 清空聊天紀錄",
-        "emergency_title": "📞 管業處緊急聯絡：",
+        "emergency_title": "📞 緊急聯絡：",
         "phone_label": "* 電話：`23646837`",
-        "service_label": "* 服務：報修 / 設備協助",
         "shortcut_header": "##### ⚡ 快捷按鈕：",
         "btn_food": "🍱 附近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
-        "btn_admin": "🛠️ 管理員協助",
-        "admin_title": "🛠️ 管理員協助版面 (直接發送系統訊息)",
-        "admin_phone_info": "📞 管業處電話：`23646837`",
-        "voice_record_admin": "🎤 點擊錄音講出問題 (會自動轉換為文字)",
-        "input_admin_placeholder": "✍️ 請文字輸入需要協助的事項：",
-        "admin_text_placeholder": "例如：茶水間咖啡機冇豆 / 冷氣唔凍...",
-        "btn_send_admin": "🚀 確認直接發送通知畀管業處",
-        "btn_close_admin": "❌ 關閉協助版面",
         "voice_search_label": "🎤 點擊錄音進行語音搜尋 (Voice Search)",
-        "chat_placeholder": "請輸入問題...",
+        "chat_placeholder": "請輸入任何問題...",
         "ai_prompt_lang": "廣東話 (Cantonese)",
-        "ai_style_instruction": "必須全程使用純正口語廣東話（粵語）回答。所有地址、交通與餐廳資訊必須 100% 真實，嚴禁捏造虛假資料。",
-        "prompt_food": "請推薦 3 至 5 間落山道 108 號樓下及 1 分鐘步程內（落山道/美華工業中心周邊）嘅真實餐廳，並附上正確嘅 Google Maps 同 OpenRice 連結同路線建議！",
+        "ai_style_instruction": "必須全程使用純正口語廣東話（粵語）回答。當用戶提及『附近美食/餐廳』或使用快捷按鈕時，必須預設以土瓜灣落山道 108 號為中心，並優先推薦步行距離最近（1-3分鐘步程，落山道/美華工業中心周邊）嘅真實餐廳。若用戶特別指定其他地區（如：銅鑼灣美食），則以指定地區為準。回答餐廳時，請附上 OpenRice 及 Google Maps 實時搜尋連結供驗證營業狀態。",
+        "prompt_food": "請推薦 3 至 5 間土瓜灣落山道 108 號樓下及 1 分鐘步程內（落山道/美華工業中心周邊）嘅真實餐廳，並附上 OpenRice 同 Google Maps 即時搜尋連結與路線建議！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，點去土瓜灣地鐵站 B 出口同附近馬頭圍道巴士站？",
-        "spinner_processing": "⏳ AI 正在處理中...",
+        "spinner_processing": "⏳ AI 正在思考並處理中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
-        "spinner_sending": "⏳ 正在發送通知畀管業處...",
-        "msg_send_success": "✅ 通知發送成功！",
-        "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管業處！",
-        "msg_send_failed": "❌ 發送失敗，請稍後再試。",
         "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
         "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再試。"
     },
     "繁體中文 (Traditional Chinese)": {
-        "title": "🤖 志昌 AI 智能管家",
-        "caption": "📍 服務地點：九龍土瓜灣落山道 108 號 (108 Lok Shan Road, To Kwa Wan)",
+        "title": "🤖 志昌 AI 智能助手",
+        "caption": "📍 隨時為您解答任何問題 | 美食、交通、天氣及生活百事",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
         "notice_board_title": "📢 大廈最新通告 / Notice Board",
         "no_notices": "ℹ️ 目前沒有最新通告",
         "clear_history": "🗑️ 清空對話紀錄",
-        "emergency_title": "📞 管理處緊急聯絡：",
+        "emergency_title": "📞 緊急聯絡：",
         "phone_label": "* 電話：`23646837`",
-        "service_label": "* 服務：報修 / 設備協助",
         "shortcut_header": "##### ⚡ 快捷按鈕：",
         "btn_food": "🍱 附近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
-        "btn_admin": "🛠️ 管理員協助",
-        "admin_title": "🛠️ 管理員協助版面 (直接發送系統訊息)",
-        "admin_phone_info": "📞 管理處電話：`23646837`",
-        "voice_record_admin": "🎤 點擊錄音說出問題 (將自動轉換為文字)",
-        "input_admin_placeholder": "✍️ 請文字輸入需要協助的事項：",
-        "admin_text_placeholder": "例如：茶水間咖啡機無豆 / 冷氣不夠冷...",
-        "btn_send_admin": "🚀 確認直接發送通知給管理處",
-        "btn_close_admin": "❌ 關閉協助版面",
         "voice_search_label": "🎤 點擊錄音進行語音搜尋 (Voice Search)",
-        "chat_placeholder": "請輸入問題...",
+        "chat_placeholder": "請輸入任何問題...",
         "ai_prompt_lang": "繁體中文 (Traditional Chinese)",
-        "ai_style_instruction": "必須全程使用規範繁體中文（書面語）回答。所有地址、交通與餐廳資訊必須 100% 真實，嚴禁捏造虛假資料。",
-        "prompt_food": "請推薦 3 至 5 間落山道 108 號樓下及 1 分鐘步行距離內（落山道/美華工業中心周邊）的真實餐廳，並附上正確的 Google Maps 及 OpenRice 連結與路線建議！",
+        "ai_style_instruction": "必須全程使用規範繁體中文（書面語）回答。當用戶提及『附近美食/餐廳』或使用快捷按鈕時，必須預設以土瓜灣落山道 108 號為中心，並優先推薦步行距離最近（1-3分鐘步行，落山道/美華工業中心周邊）的真實餐廳。若用戶特別指定其他地區，則以指定地區為準。回答餐廳時，請附上 OpenRice 及 Google Maps 實時搜尋連結供驗證營業狀態。",
+        "prompt_food": "請推薦 3 至 5 間土瓜灣落山道 108 號樓下及 1 分鐘步行距離內（落山道/美華工業中心周邊）的真實餐廳，並附上 OpenRice 及 Google Maps 即時搜尋連結與路線建議！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，如何前往土瓜灣地鐵站 B 出口及附近馬頭圍道巴士站？",
-        "spinner_processing": "⏳ AI 正在處理中...",
+        "spinner_processing": "⏳ AI 正在思考並處理中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
-        "spinner_sending": "⏳ 正在發送通知給管理處...",
-        "msg_send_success": "✅ 通知發送成功！",
-        "msg_send_mock_success": "✅ (系統模擬發送) 已經紀錄並通知管理處！",
-        "msg_send_failed": "❌ 發送失敗，請稍後再試。",
         "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
         "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再次發送問題。"
     },
     "简体中文 (Simplified Chinese)": {
-        "title": "🤖 志昌 AI 智能管家",
-        "caption": "📍 服务地点：九龙土瓜湾落山道 108 号 (108 Lok Shan Road, To Kwa Wan)",
+        "title": "🤖 志昌 AI 智能助手",
+        "caption": "📍 随时为您解答任何问题 | 美食、交通、天气及生活百事",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 当前定位：土瓜湾落山道 108 号",
-        "notice_board_title": "📢 大厦最新通告 / Notice Board",
+        "notice_board_title": "📢 最新通告 / Notice Board",
         "no_notices": "ℹ️ 目前没有最新通告",
         "clear_history": "🗑️ 清空对话纪录",
-        "emergency_title": "📞 管理处紧急联络：",
+        "emergency_title": "📞 紧急联络：",
         "phone_label": "* 电话：`23646837`",
-        "service_label": "* 服务：报修 / 设备协助",
         "shortcut_header": "##### ⚡ 快捷按钮：",
         "btn_food": "🍱 附近美食",
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 实时天气",
-        "btn_admin": "🛠️ 管理员协助",
-        "admin_title": "🛠️ 管理员协助界面 (直接发送系统消息)",
-        "admin_phone_info": "📞 管理处电话：`23646837`",
-        "voice_record_admin": "🎤 点击录音说出问题 (将自动转换为文字)",
-        "input_admin_placeholder": "✍️ 请文字输入需要协助的事项：",
-        "admin_text_placeholder": "例如：茶水间咖啡机无豆 / 空调不够冷...",
-        "btn_send_admin": "🚀 确认直接发送通知给管理处",
-        "btn_close_admin": "❌ 关闭协助界面",
         "voice_search_label": "🎤 点击录音进行语音搜索 (Voice Search)",
-        "chat_placeholder": "请输入问题...",
+        "chat_placeholder": "请输入任何问题...",
         "ai_prompt_lang": "规范简体中文 (Simplified Chinese)",
-        "ai_style_instruction": "必须全程使用规范简化字回答，绝对禁止出现任何繁体字或粤语口语。所有地址、交通与餐厅信息必须 100% 真实，严禁虚构假信息。",
-        "prompt_food": "请推荐 3 至 5 家落山道 108 号楼下及 1 分钟步行距离内（落山道/美华工业中心周边）的真实餐厅，并附上正确的 Google Maps 及 OpenRice 链接与路线建议！",
+        "ai_style_instruction": "必须全程使用规范简化字回答，绝对禁止出现任何繁体字或粤语口语。当用户提及『附近美食/餐厅』或使用快捷按钮时，必须默认以土瓜湾落山道 108 号为中心，并优先推荐步行距离最近（1-3分钟步行，落山道/美华工业中心周边）的真实餐厅。若用户特别指定其他地区，则以指定地区为准。回答餐厅时，请附上 OpenRice 及 Google Maps 实时搜索链接供验证营业状态。",
+        "prompt_food": "请推荐 3 至 5 家土瓜湾落山道 108 号楼下及 1 分钟步行距离内（落山道/美华工业中心周边）的真实餐厅，并附上 OpenRice 及 Google Maps 实时搜索链接与路线建议！",
         "prompt_trans": "请说明由土瓜湾落山道 108 号出发，如何前往土瓜湾地铁站 B 出口及附近马头围道巴士站？",
-        "spinner_processing": "⏳ AI 正在处理中...",
+        "spinner_processing": "⏳ AI 正在思考并处理中...",
         "spinner_transcribing": "🎙️ 正在转换语音为文字...",
-        "spinner_sending": "⏳ 正在发送通知给管理处...",
-        "msg_send_success": "✅ 通知发送成功！",
-        "msg_send_mock_success": "✅ (系统模拟发送) 已经纪录并通知管理处！",
-        "msg_send_failed": "❌ 发送失败，请稍后再试。",
         "msg_voice_error": "⚠️ 语音识别失败，请重新尝试。",
         "msg_api_error": "⚠️ AI 系统繁忙，请稍后再试一次。"
     },
     "English": {
-        "title": "🤖 Chi Cheong AI Butler",
-        "caption": "📍 Location: 108 Lok Shan Road, To Kwa Wan, Kowloon",
+        "title": "🤖 Chi Cheong AI Assistant",
+        "caption": "📍 Ask me anything | Food, Transportation, Weather & General Knowledge",
         "sidebar_control": "⚙️ Control Panel",
-        "current_loc": "📍 Current Location: 108 Lok Shan Road",
-        "notice_board_title": "📢 Building Notices",
+        "current_loc": "📍 Location: 108 Lok Shan Road",
+        "notice_board_title": "📢 Notice Board",
         "no_notices": "ℹ️ No notices available.",
         "clear_history": "🗑️ Clear Chat History",
-        "emergency_title": "📞 Property Office Hotline:",
+        "emergency_title": "📞 Hotline:",
         "phone_label": "* Phone: `23646837`",
-        "service_label": "* Services: Repairs / Facility Assistance",
-        "shortcut_header": "##### ⚡ Quick Buttons:",
-        "btn_food": "🍱 Nearby Food",
-        "btn_trans": "🚌 Transportation",
-        "btn_weather": "🌤️ Live Weather",
-        "btn_admin": "🛠️ Admin Help",
-        "admin_title": "🛠️ Admin Assistance (Send System Notification)",
-        "admin_phone_info": "📞 Property Office: `23646837`",
-        "voice_record_admin": "🎤 Click to record issue (Auto-transcribed)",
-        "input_admin_placeholder": "✍️ Enter details for assistance:",
-        "admin_text_placeholder": "e.g., Coffee machine empty / AC not cold...",
-        "btn_send_admin": "🚀 Send Notification to Property Office",
-        "btn_close_admin": "❌ Close Admin Panel",
+        "shortcut_header": "##### ⚡ Quick Shortcuts:",
+        "btn_food": "🍱 附近美食",
+        "btn_trans": "🚌 附近交通",
+        "btn_weather": "🌤️ 實時天氣",
         "voice_search_label": "🎤 Click to record for Voice Search",
-        "chat_placeholder": "Ask a question...",
+        "chat_placeholder": "Ask any question...",
         "ai_prompt_lang": "English",
-        "ai_style_instruction": "You MUST answer 100% in professional English. All location, transit, and restaurant details MUST be factual and real.",
-        "prompt_food": "Please recommend 3 to 5 real restaurants located right at or within 1 minute walk of 108 Lok Shan Road (Lok Shan Road & Merit Industrial Centre area) with Google Maps and OpenRice links and route tips!",
-        "prompt_trans": "Please explain how to get to To Kwa Wan MTR Station Exit B and nearby bus stops from 108 Lok Shan Road factual path.",
-        "spinner_processing": "⏳ AI is processing...",
+        "ai_style_instruction": "You MUST answer 100% in professional English. When the user asks for 'nearby food/restaurants' (either by button or typing), ALWAYS default to 108 Lok Shan Road, To Kwa Wan, and prioritize restaurants with the shortest walking distance (1-3 min walk). If the user specifies another district (e.g. CauseWay Bay food), respect their specified location. Provide OpenRice and Google Maps search links for verification.",
+        "prompt_food": "Please recommend 3 to 5 real restaurants near 108 Lok Shan Road (within 1-3 min walk) with OpenRice and Google Maps links and walking route tips!",
+        "prompt_trans": "Please explain how to get to To Kwa Wan MTR Station Exit B and nearby bus stops from 108 Lok Shan Road.",
+        "spinner_processing": "⏳ AI is thinking...",
         "spinner_transcribing": "🎙️ Transcribing audio...",
-        "spinner_sending": "⏳ Sending notification to Property Office...",
-        "msg_send_success": "✅ Notification sent successfully!",
-        "msg_send_mock_success": "✅ (Simulated) Recorded and notified Property Office!",
-        "msg_send_failed": "❌ Failed to send. Please try again later.",
         "msg_voice_error": "⚠️ Speech recognition failed. Please try again.",
         "msg_api_error": "⚠️ AI system busy. Please try asking again."
     }
@@ -169,7 +117,7 @@ TRANSLATIONS = {
 # 2. 頁面基本設定與 120 秒閒置重置
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="志昌 AI 智能管家 | 108 Lok Shan Road",
+    page_title="志昌 AI 智能助手 | Chi Cheong AI Assistant",
     page_icon="🤖",
     layout="centered"
 )
@@ -180,17 +128,11 @@ st_autorefresh(interval=10000, key="auto_timeout_check")
 if "last_active_time" in st.session_state:
     if time.time() - st.session_state["last_active_time"] > TIMEOUT_SECONDS:
         st.session_state.messages = []
-        st.session_state.admin_mode = False
-        st.session_state.admin_text = ""
         st.session_state["last_active_time"] = time.time()
         st.rerun()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "admin_mode" not in st.session_state:
-    st.session_state.admin_mode = False
-if "admin_text" not in st.session_state:
-    st.session_state.admin_text = ""
 if "last_active_time" not in st.session_state:
     st.session_state["last_active_time"] = time.time()
 
@@ -225,8 +167,7 @@ if "prev_language" not in st.session_state:
 if st.session_state.prev_language != selected_language:
     st.session_state.prev_language = selected_language
     st.session_state.messages = []
-    st.session_state.admin_mode = False
-    st.session_state.admin_text = ""
+    st.session_state["last_active_time"] = time.time()
     st.rerun()
 
 T = TRANSLATIONS[selected_language]
@@ -235,7 +176,7 @@ st.title(T["title"])
 st.caption(T["caption"])
 
 # -----------------------------------------------------------------------------
-# 5. 讀取與逐一獨立翻譯通告
+# 5. 通告讀取與動態翻譯
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -251,8 +192,8 @@ def get_translated_notice(title, content, target_lang):
         return title, content
         
     try:
-        prompt = f"""Translating building notice into: {target_lang}.
-Ensure 100% proper Simplified Chinese characters if Simplified Chinese is selected (Replace Cantonese terms like 冇, 嘅 with 没有, 的).
+        prompt = f"""Translate building notice into: {target_lang}.
+Ensure 100% proper Simplified Chinese characters if Simplified Chinese is selected.
 Respond JSON only: {{"title": "...", "content": "..."}}
 
 Title: {title}
@@ -296,16 +237,14 @@ with st.sidebar:
     st.markdown("---")
     if st.button(T["clear_history"], use_container_width=True):
         st.session_state.messages = []
-        st.session_state.admin_mode = False
-        st.session_state.admin_text = ""
         st.session_state["last_active_time"] = time.time()
         st.rerun()
 
     st.markdown("---")
-    st.markdown(f"{T['emergency_title']}\n{T['phone_label']}\n{T['service_label']}")
+    st.markdown(f"{T['emergency_title']}\n{T['phone_label']}")
 
 # -----------------------------------------------------------------------------
-# 6. 天文台即時官方天氣 API
+# 6. 香港天文台即時官方天氣 API
 # -----------------------------------------------------------------------------
 def get_real_hk_weather(lang):
     api_lang = "tc"
@@ -329,37 +268,41 @@ def get_real_hk_weather(lang):
         
         if lang == "English":
             warning_str = " | ".join(warnings) if warnings else "No special weather warnings"
-            return f"🌤️ **Hong Kong Observatory Real-time Weather Report:**\n- 📍 **Kowloon City Temp**: {kowloon_temp}°C\n- 💧 **Humidity**: {humidity}%\n- ⚠️ **Warnings**: {warning_str}\n- 🔗 [Official HKO Site](https://www.hko.gov.hk/en/index.html)"
+            return f"🌤️ **Hong Kong Observatory Real-time Weather (108 Lok Shan Road Area):**\n- 📍 **Kowloon City / To Kwa Wan Temp**: {kowloon_temp}°C\n- 💧 **Humidity**: {humidity}%\n- ⚠️ **Warnings**: {warning_str}\n- 🔗 [Official HKO Site](https://www.hko.gov.hk/en/index.html)"
         elif lang == "简体中文 (Simplified Chinese)":
             warning_str = " | ".join(warnings) if warnings else "目前无特别天气警告"
-            return f"🌤️ **香港天文台实时官方天气报告：**\n- 📍 **九龙城/土瓜湾区气温**：{kowloon_temp}°C\n- 💧 **相对湿度**：{humidity}%\n- ⚠️ **现时天气警告**：{warning_str}\n- 🔗 [点击查看香港天文台官方网站](https://www.hko.gov.hk/sc/index.html)"
+            return f"🌤️ **香港天文台实时官方天气报告（土瓜湾落山道 108 号周边）：**\n- 📍 **九龙城/土瓜湾区气温**：{kowloon_temp}°C\n- 💧 **相对湿度**：{humidity}%\n- ⚠️ **现时天气警告**：{warning_str}\n- 🔗 [点击查看香港天文台官方网站](https://www.hko.gov.hk/sc/index.html)"
         elif lang == "繁體中文 (Traditional Chinese)":
             warning_str = " | ".join(warnings) if warnings else "目前無特別天氣警告"
-            return f"🌤️ **香港天文台實時官方天氣報告：**\n- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C\n- 💧 **相對濕度**：{humidity}%\n- ⚠️ **現時天氣警告**：{warning_str}\n- 🔗 [點擊查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"
+            return f"🌤️ **香港天文台實時官方天氣報告（土瓜灣落山道 108 號周邊）：**\n- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C\n- 💧 **相對濕度**：{humidity}%\n- ⚠️ **現時天氣警告**：{warning_str}\n- 🔗 [點擊查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"
         else:
             warning_str = " | ".join(warnings) if warnings else "目前冇特別天氣警告"
-            return f"🌤️ **香港天文台即時官方天氣報告：**\n- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C\n- 💧 **相對濕度**：{humidity}%\n- ⚠️ **現時天氣警告**：{warning_str}\n- 🔗 [點此查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"
+            return f"🌤️ **香港天文台即時官方天氣報告（土瓜灣落山道 108 號周邊）：**\n- 📍 **九龍城/土瓜灣區氣溫**：{kowloon_temp}°C\n- 💧 **相對濕度**：{humidity}%\n- ⚠️ **現時天氣警告**：{warning_str}\n- 🔗 [點此查看香港天文台官方網站](https://www.hko.gov.hk/tc/index.html)"
     except Exception:
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 7. System Prompt (全港搜尋 + 強制提供 3-5 個選項 + 地圖/OpenRice/路線)
+# 7. 全能通用 System Prompt (嚴格設定：無指定地區時，預設落山道108號為中心)
 # -----------------------------------------------------------------------------
-SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Butler' (志昌 AI 智能管家), stationed at 108 Lok Shan Road, To Kwa Wan, Hong Kong.
+SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Assistant' (志昌 AI 智能助手).
 
-【UNIVERSAL SEARCH & RECOMMENDATION MANDATE】
-1. SEARCH SCOPE: You MUST search and recommend venues across ALL OF HONG KONG (Central, Soho, Tsim Sha Tsui, Causeway Bay, Mong Kok, etc.) based on user input. DO NOT restrict queries to Lok Shan Road unless explicitly asked.
+【LOCATION ANCHORING & FOOD RECOMMENDATION RULES】
+1. DEFAULT LOCATION:
+   - When the user asks for food/restaurants/traffic/weather using shortcut buttons, OR types generic phrases like "附近美食", "附近食乜好", "附近餐廳", "附近交通" WITHOUT specifying a city/district:
+   - You MUST automatically assume the starting location is **108 Lok Shan Road, To Kwa Wan, Kowloon, Hong Kong (九龍土瓜灣落山道 108 號)**.
 
-2. MULTIPLE OPTIONS REQUIRED:
-   When recommending places, restaurants, or bars, NEVER give only 1 option!
-   You MUST ALWAYS provide **3 to 5 DISTINCT, HIGH-QUALITY OPTIONS** for the user to choose from.
+2. CLOSEST WALKING DISTANCE PRIORITY:
+   - For food recommendations near 108 Lok Shan Road, ALWAYS prioritize places with the **shortest walking distance first** (e.g., 1-3 minutes walking distance: Lok Shan Road, Mei Wah Industrial Centre vicinity, Ma Tau Wai Road).
+   - Clearly state the estimated walking time (e.g. 步行約 1 分鐘).
 
-3. REQUIRED DETAILS FOR EVERY RECOMMENDED VENUE:
-   For EACH of the 3 to 5 options, strictly include:
-   - 📍 **Address & Feature**: Exact address and brief style/feature.
-   - 🗺️ **Google Maps Link**: `https://www.google.com/maps/search/?api=1&query=ENCODED_NAME_AND_DISTRICT`
-   - 🍽️ **OpenRice Link**: `https://www.openrice.com/zh/hongkong/restaurants?where=ENCODED_NAME` (for booking/reviews)
-   - 🚌 **Route / Transit Advice**: Nearest MTR exit or transport suggestion (e.g. how to get there).
+3. SPECIFIED LOCATIONS:
+   - If the user explicitly mentions a different area (e.g., "旺角美食", "Mong Kok food", "東京景點"), answer for that specified area instead.
+
+4. REAL-TIME SEARCH LINKS (PREVENT CLOSED SHOPS):
+   - For EACH restaurant recommended, provide:
+     * OpenRice Real-time Link: `https://www.openrice.com/zh/hongkong/restaurants?what=ENCODED_NAME`
+     * Google Maps Link: `https://www.google.com/maps/search/?api=1&query=ENCODED_NAME`
+   - Remind the user to click the OpenRice link to verify live business hours/status.
 
 Response Language: STRICTLY 【{T['ai_prompt_lang']}】.
 Style Instruction: {T['ai_style_instruction']}
@@ -373,9 +316,8 @@ st.markdown(T["shortcut_header"])
 def send_shortcut(prompt_text):
     st.session_state["last_active_time"] = time.time()
     st.session_state.messages.append({"role": "user", "content": prompt_text})
-    st.session_state.admin_mode = False
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3 = st.columns(3)
 with col1:
     st.button(T["btn_food"], use_container_width=True, on_click=send_shortcut, args=(T["prompt_food"],))
 with col2:
@@ -385,103 +327,36 @@ with col3:
         st.session_state["last_active_time"] = time.time()
         real_weather_text = get_real_hk_weather(selected_language)
         st.session_state.messages.append({"role": "assistant", "content": real_weather_text})
-        st.session_state.admin_mode = False
-        st.rerun()
-with col4:
-    if st.button(T["btn_admin"], use_container_width=True):
-        st.session_state["last_active_time"] = time.time()
-        st.session_state.admin_mode = True
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# 9. 管理員協助版面
+# 9. 🎤 語音搜尋
 # -----------------------------------------------------------------------------
-if st.session_state.admin_mode:
-    st.markdown("---")
-    st.error(f"#### {T['admin_title']}")
-    st.info(T["admin_phone_info"])
-    
-    admin_audio = st.audio_input(T["voice_record_admin"])
-    if admin_audio is not None:
-        st.session_state["last_active_time"] = time.time()
-        with st.spinner(T["spinner_transcribing"]):
-            try:
-                transcription = client.audio.transcriptions.create(
-                    model="openai/whisper-1",
-                    file=admin_audio
-                )
-                st.session_state.admin_text = transcription.text
+st.markdown("---")
+audio_input = st.audio_input(T["voice_search_label"])
+if audio_input is not None:
+    st.session_state["last_active_time"] = time.time()
+    with st.spinner(T["spinner_transcribing"]):
+        try:
+            transcription = client.audio.transcriptions.create(
+                model="openai/whisper-1",
+                file=audio_input
+            )
+            if transcription.text:
+                st.session_state.messages.append({"role": "user", "content": transcription.text})
                 st.rerun()
-            except Exception:
-                st.warning(T["msg_voice_error"])
-    
-    issue_text = st.text_area(
-        T["input_admin_placeholder"], 
-        value=st.session_state.admin_text,
-        placeholder=T["admin_text_placeholder"]
-    )
-    
-    if issue_text.strip():
-        if st.button(T["btn_send_admin"], type="primary", use_container_width=True):
-            st.session_state["last_active_time"] = time.time()
-            with st.spinner(T["spinner_sending"]):
-                try:
-                    webhook_url = st.secrets.get("WHATSAPP_WEBHOOK_URL", "")
-                    if webhook_url:
-                        payload = {
-                            "phone": "85223646837",
-                            "message": f"🤖【志昌智能管家】\n📍 地點：土瓜灣落山道 108 號\n⚠️ 事項：{issue_text.strip()}"
-                        }
-                        response = requests.post(webhook_url, json=payload, timeout=5)
-                        if response.status_code in [200, 201]:
-                            st.success(T["msg_send_success"])
-                            st.session_state.admin_text = ""
-                        else:
-                            st.error(T["msg_send_failed"])
-                    else:
-                        st.success(T["msg_send_mock_success"])
-                except Exception:
-                    st.error(T["msg_send_failed"])
-                    
-        encoded_msg = urllib.parse.quote(issue_text.strip())
-        st.markdown(f"<div style='text-align:center;'><a href='https://wa.me/85223646837?text={encoded_msg}' target='_blank' style='font-size:12px; color:gray; text-decoration:none;'>👉 WhatsApp Direct Link</a></div>", unsafe_allow_html=True)
-
-    if st.button(T["btn_close_admin"], use_container_width=True):
-        st.session_state["last_active_time"] = time.time()
-        st.session_state.admin_mode = False
-        st.session_state.admin_text = ""
-        st.rerun()
-    st.markdown("---")
+        except Exception:
+            st.warning(T["msg_voice_error"])
 
 # -----------------------------------------------------------------------------
-# 10. 🎤 語音搜尋
-# -----------------------------------------------------------------------------
-if not st.session_state.admin_mode:
-    st.markdown("---")
-    audio_input = st.audio_input(T["voice_search_label"])
-    if audio_input is not None:
-        st.session_state["last_active_time"] = time.time()
-        with st.spinner(T["spinner_transcribing"]):
-            try:
-                transcription = client.audio.transcriptions.create(
-                    model="openai/whisper-1",
-                    file=audio_input
-                )
-                if transcription.text:
-                    st.session_state.messages.append({"role": "user", "content": transcription.text})
-                    st.rerun()
-            except Exception:
-                st.warning(T["msg_voice_error"])
-
-# -----------------------------------------------------------------------------
-# 11. 對話紀錄顯示
+# 10. 對話紀錄顯示
 # -----------------------------------------------------------------------------
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 # -----------------------------------------------------------------------------
-# 12. 文字輸入框
+# 11. 自由文字輸入框
 # -----------------------------------------------------------------------------
 user_text = st.chat_input(T["chat_placeholder"])
 
@@ -491,7 +366,7 @@ if user_text:
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# 13. AI 核心發送
+# 12. AI 核心發送與回應
 # -----------------------------------------------------------------------------
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     with st.chat_message("assistant"):
@@ -510,8 +385,8 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                     res = client.chat.completions.create(
                         model=m,
                         messages=api_messages,
-                        temperature=0.1,
-                        timeout=12
+                        temperature=0.3,
+                        timeout=15
                     )
                     ai_reply = res.choices[0].message.content.strip()
                     if ai_reply:
