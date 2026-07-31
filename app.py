@@ -28,7 +28,7 @@ TRANSLATIONS = {
         "voice_search_label": "🎤 點擊錄音進行語音搜尋 (Voice Search)",
         "chat_placeholder": "請輸入任何問題（例如：Billboard Top 10、最新新聞...）",
         "ai_prompt_lang": "廣東話 (Cantonese)",
-        "ai_style_instruction": "必須全程使用純正口語廣東話（粵語）回答。當用戶提及『附近美食/餐廳』或使用快捷按鈕時，必須預設以土瓜灣落山道 108 號為中心，並優先推薦步行距離最近（1-3分鐘步程，落山道/美華工業中心周邊）嘅真實餐廳。若用戶特別指定其他地區（如：銅鑼灣美食），則以指定地區為準。回答餐廳時，請附上 OpenRice 及 Google Maps 實時搜尋連結供驗證營業狀態。",
+        "ai_style_instruction": "必須全程使用純正口語廣東話（粵語）回答。當用戶提及『附近美食/餐廳』或使用快捷按鈕時，必須預設以土瓜灣落山道 108 號為中心，並優先推薦步行距離最近（1-3分鐘步程，落山道/美華工業中心周邊）嘅真實餐廳。若用戶特別指定其他地區（如：銅邏灣美食），則以指定地區為準。回答餐廳時，請附上 OpenRice 及 Google Maps 實時搜尋連結供驗證營業狀態。",
         "prompt_food": "請推薦 3 至 5 間土瓜灣落山道 108 號樓下及 1 分鐘步程內（落山道/美華工業中心周邊）嘅真實餐廳，並附上 OpenRice 同 Google Maps 即時搜尋連結與路線建議！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，點去土瓜灣地鐵站 B 出口同附近馬頭圍道巴士站？",
         "spinner_processing": "⏳ AI 正在即時搜尋網絡並思考中...",
@@ -87,7 +87,7 @@ TRANSLATIONS = {
         "msg_api_error": "⚠️ AI 系统繁忙，请稍后再试一次。"
     },
     "English": {
-        "title": "🤖 Chi Cheong AI Assistant",
+        "title": "🤖 Gee Chang AI Assistant",
         "caption": "📍 Ask me anything | Food, Transportation, Weather, Live Web Search & General Knowledge",
         "sidebar_control": "⚙️ Control Panel",
         "current_loc": "📍 Location: 108 Lok Shan Road",
@@ -97,9 +97,9 @@ TRANSLATIONS = {
         "emergency_title": "📞 Hotline:",
         "phone_label": "* Phone: `23646837`",
         "shortcut_header": "##### ⚡ Quick Shortcuts:",
-        "btn_food": "🍱 附近美食",
-        "btn_trans": "🚌 附近交通",
-        "btn_weather": "🌤️ 實時天氣",
+        "btn_food": "🍱 Nearby Food",
+        "btn_trans": "🚌 Nearby Transport",
+        "btn_weather": "🌤️ Real-time Weather",
         "voice_search_label": "🎤 Click to record for Voice Search",
         "chat_placeholder": "Ask any question (e.g. Billboard Top 10, latest news...)",
         "ai_prompt_lang": "English",
@@ -117,7 +117,7 @@ TRANSLATIONS = {
 # 2. 頁面基本設定與 120 秒閒置重置
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="志昌 AI 智能助手 | Chi Cheong AI Assistant",
+    page_title="志昌 AI 智能助手 | Gee Chang AI Assistant",
     page_icon="🤖",
     layout="centered"
 )
@@ -187,15 +187,18 @@ def load_notices():
         pass
     return []
 
-def get_translated_notice(title, content, target_lang):
+def get_translated_notice(category, title, content, target_lang):
     if target_lang in ["廣東話 (Cantonese)", "繁體中文 (Traditional Chinese)"]:
-        return title, content
+        return category, title, content
         
     try:
-        prompt = f"""Translate building notice into: {target_lang}.
-Ensure 100% proper Simplified Chinese characters if Simplified Chinese is selected.
-Respond JSON only: {{"title": "...", "content": "..."}}
+        prompt = f"""Translate this building notice into target language: {target_lang}.
+Translate ALL fields including category, title, and content into {target_lang}.
+Ensure 100% proper Simplified Chinese characters if Simplified Chinese is selected, or 100% natural English if English is selected.
 
+Respond with JSON only using key names: "category", "title", "content"
+
+Category: {category}
 Title: {title}
 Content: {content}"""
 
@@ -206,9 +209,13 @@ Content: {content}"""
             timeout=8
         )
         data = json.loads(res.choices[0].message.content)
-        return data.get("title", title), data.get("content", content)
+        return (
+            data.get("category", category),
+            data.get("title", title),
+            data.get("content", content)
+        )
     except Exception:
-        return title, content
+        return category, title, content
 
 with st.sidebar:
     st.header(T["sidebar_control"])
@@ -220,14 +227,14 @@ with st.sidebar:
     
     if notices:
         for notice in notices:
-            category = notice.get('category', '通告')
+            raw_category = notice.get('category', '通告')
             raw_title = notice.get('title', '')
             date_str = notice.get('date', '')
             raw_content = notice.get('content', '')
             
-            t_title, t_content = get_translated_notice(raw_title, raw_content, selected_language)
+            t_category, t_title, t_content = get_translated_notice(raw_category, raw_title, raw_content, selected_language)
             
-            with st.expander(f"【{category}】{t_title}"):
+            with st.expander(f"【{t_category}】{t_title}"):
                 if date_str:
                     st.caption(f"🗓️ {date_str}")
                 st.write(t_content)
@@ -282,9 +289,9 @@ def get_real_hk_weather(lang):
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 7. 全能通用 System Prompt (解除知識庫限制，允許實時搜尋)
+# 7. 全能通用 System Prompt
 # -----------------------------------------------------------------------------
-SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Assistant' (志昌 AI 智能助手).
+SYSTEM_PROMPT = f"""You are 'Gee Chang AI Assistant' (志昌 AI 智能助手).
 
 【REAL-TIME SEARCH & ACCURACY INSTRUCTIONS】
 - You have real-time web search capability enabled.
@@ -313,7 +320,7 @@ Style Instruction: {T['ai_style_instruction']}
 """
 
 # -----------------------------------------------------------------------------
-# 8. 快捷按鈕
+# 8. 快捷按鈕 (已修正：按鈕標籤隨語言變換)
 # -----------------------------------------------------------------------------
 st.markdown(T["shortcut_header"])
 
@@ -370,7 +377,7 @@ if user_text:
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# 12. AI 核心發送與回應 (開啟 OpenRouter 網絡搜尋外掛)
+# 12. AI 核心發送與回應
 # -----------------------------------------------------------------------------
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     with st.chat_message("assistant"):
@@ -381,7 +388,6 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 for m in st.session_state.messages
             ]
 
-            # 支援聯網和檢索能力強大的模型列表
             models_to_try = [
                 "google/gemini-2.0-flash-001",
                 "openai/gpt-4o-mini",
@@ -391,14 +397,13 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
 
             for m in models_to_try:
                 try:
-                    # 使用 extra_body 加入 OpenRouter 原生 Web Search 插件
                     res = client.chat.completions.create(
                         model=m,
                         messages=api_messages,
                         temperature=0.3,
                         timeout=25,
                         extra_body={
-                            "plugins": [{"id": "web"}]  # 啟用 OpenRouter 網絡搜尋外掛
+                            "plugins": [{"id": "web"}]
                         }
                     )
                     ai_reply = res.choices[0].message.content.strip()
