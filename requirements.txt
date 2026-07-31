@@ -1,6 +1,4 @@
 streamlit
 openai
 requests
-httpx
 streamlit-autorefresh
-duckduckgo-search
