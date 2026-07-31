@@ -6,15 +6,14 @@ import requests
 import streamlit as st
 from openai import OpenAI
 from streamlit_autorefresh import st_autorefresh
-from duckduckgo_search import DDGS  # 導入即時網頁搜尋套件
 
 # -----------------------------------------------------------------------------
-# 1. 100% 完整多語言介面字典
+# 1. 多語言介面字典
 # -----------------------------------------------------------------------------
 TRANSLATIONS = {
     "廣東話 (Cantonese)": {
         "title": "🤖 志昌 AI 智能助手",
-        "caption": "📍 隨時為你解答任何問題 | 美食、交通、天氣、即時新聞及生活百事",
+        "caption": "📍 隨時為你解答任何問題 | 美食、交通、天氣、即時網絡搜尋及生活百事",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
         "notice_board_title": "📢 大廈最新通告 / Notice Board",
@@ -27,19 +26,19 @@ TRANSLATIONS = {
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
         "voice_search_label": "🎤 點擊錄音進行語音搜尋 (Voice Search)",
-        "chat_placeholder": "請輸入任何問題...",
+        "chat_placeholder": "請輸入任何問題（例如：Billboard Top 10、最新新聞...）",
         "ai_prompt_lang": "廣東話 (Cantonese)",
         "ai_style_instruction": "必須全程使用純正口語廣東話（粵語）回答。當用戶提及『附近美食/餐廳』或使用快捷按鈕時，必須預設以土瓜灣落山道 108 號為中心，並優先推薦步行距離最近（1-3分鐘步程，落山道/美華工業中心周邊）嘅真實餐廳。若用戶特別指定其他地區（如：銅鑼灣美食），則以指定地區為準。回答餐廳時，請附上 OpenRice 及 Google Maps 實時搜尋連結供驗證營業狀態。",
         "prompt_food": "請推薦 3 至 5 間土瓜灣落山道 108 號樓下及 1 分鐘步程內（落山道/美華工業中心周邊）嘅真實餐廳，並附上 OpenRice 同 Google Maps 即時搜尋連結與路線建議！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，點去土瓜灣地鐵站 B 出口同附近馬頭圍道巴士站？",
-        "spinner_processing": "⏳ AI 正在檢索網絡並思考中...",
+        "spinner_processing": "⏳ AI 正在即時搜尋網絡並思考中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
         "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
         "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再試。"
     },
     "繁體中文 (Traditional Chinese)": {
         "title": "🤖 志昌 AI 智能助手",
-        "caption": "📍 隨時為您解答任何問題 | 美食、交通、天氣、即時資訊及生活百事",
+        "caption": "📍 隨時為您解答任何問題 | 美食、交通、天氣、即時網路搜尋及生活百事",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 當前定位：土瓜灣落山道 108 號",
         "notice_board_title": "📢 大廈最新通告 / Notice Board",
@@ -57,14 +56,14 @@ TRANSLATIONS = {
         "ai_style_instruction": "必須全程使用規範繁體中文（書面語）回答。當用戶提及『附近美食/餐廳』或使用快捷按鈕時，必須預設以土瓜灣落山道 108 號為中心，並優先推薦步行距離最近（1-3分鐘步行，落山道/美華工業中心周邊）的真實餐廳。若用戶特別指定其他地區，則以指定地區為準。回答餐廳時，請附上 OpenRice 及 Google Maps 實時搜尋連結供驗證營業狀態。",
         "prompt_food": "請推薦 3 至 5 間土瓜灣落山道 108 號樓下及 1 分鐘步行距離內（落山道/美華工業中心周邊）的真實餐廳，並附上 OpenRice 及 Google Maps 即時搜尋連結與路線建議！",
         "prompt_trans": "請說明由土瓜灣落山道 108 號出發，如何前往土瓜灣地鐵站 B 出口及附近馬頭圍道巴士站？",
-        "spinner_processing": "⏳ AI 正在進行網路搜尋並處理中...",
+        "spinner_processing": "⏳ AI 正在即時搜尋網路並處理中...",
         "spinner_transcribing": "🎙️ 正在轉換語音為文字...",
         "msg_voice_error": "⚠️ 語音辨識失敗，請重新嘗試。",
         "msg_api_error": "⚠️ AI 系統暫時忙碌中，請稍後再次發送問題。"
     },
     "简体中文 (Simplified Chinese)": {
         "title": "🤖 志昌 AI 智能助手",
-        "caption": "📍 随时为您解答任何问题 | 美食、交通、天气、实时资讯及生活百事",
+        "caption": "📍 随时为您解答任何问题 | 美食、交通、天气、实时网络搜索及生活百事",
         "sidebar_control": "⚙️ 控制面板",
         "current_loc": "📍 当前定位：土瓜湾落山道 108 号",
         "notice_board_title": "📢 最新通告 / Notice Board",
@@ -82,14 +81,14 @@ TRANSLATIONS = {
         "ai_style_instruction": "必须全程使用规范简化字回答，绝对禁止出现任何繁体字或粤语口语。当用户提及『附近美食/餐厅』或使用快捷按钮时，必须默认以土瓜湾落山道 108 号为中心，并优先推荐步行距离最近（1-3分钟步行，落山道/美华工业中心周边）的真实餐厅。若用户特别指定其他地区，则以指定地区为准。回答餐厅时，请附上 OpenRice 及 Google Maps 实时搜索链接供验证营业状态。",
         "prompt_food": "请推荐 3 至 5 家土瓜湾落山道 108 号楼下及 1 分钟步行距离内（落山道/美华工业中心周边）的真实餐厅，并附上 OpenRice 及 Google Maps 实时搜索链接与路线建议！",
         "prompt_trans": "请说明由土瓜湾落山道 108 号出发，如何前往土瓜湾地铁站 B 出口及附近马头围道巴士站？",
-        "spinner_processing": "⏳ AI 正在进行网络搜索并处理中...",
+        "spinner_processing": "⏳ AI 正在实时网络搜索并处理中...",
         "spinner_transcribing": "🎙️ 正在转换语音为文字...",
         "msg_voice_error": "⚠️ 语音识别失败，请重新尝试。",
         "msg_api_error": "⚠️ AI 系统繁忙，请稍后再试一次。"
     },
     "English": {
         "title": "🤖 Chi Cheong AI Assistant",
-        "caption": "📍 Ask me anything | Food, Transportation, Weather, Live News & General Knowledge",
+        "caption": "📍 Ask me anything | Food, Transportation, Weather, Live Web Search & General Knowledge",
         "sidebar_control": "⚙️ Control Panel",
         "current_loc": "📍 Location: 108 Lok Shan Road",
         "notice_board_title": "📢 Notice Board",
@@ -102,12 +101,12 @@ TRANSLATIONS = {
         "btn_trans": "🚌 附近交通",
         "btn_weather": "🌤️ 實時天氣",
         "voice_search_label": "🎤 Click to record for Voice Search",
-        "chat_placeholder": "Ask any question...",
+        "chat_placeholder": "Ask any question (e.g. Billboard Top 10, latest news...)",
         "ai_prompt_lang": "English",
         "ai_style_instruction": "You MUST answer 100% in professional English. When the user asks for 'nearby food/restaurants' (either by button or typing), ALWAYS default to 108 Lok Shan Road, To Kwa Wan, and prioritize restaurants with the shortest walking distance (1-3 min walk). If the user specifies another district (e.g. CauseWay Bay food), respect their specified location. Provide OpenRice and Google Maps search links for verification.",
         "prompt_food": "Please recommend 3 to 5 real restaurants near 108 Lok Shan Road (within 1-3 min walk) with OpenRice and Google Maps links and walking route tips!",
         "prompt_trans": "Please explain how to get to To Kwa Wan MTR Station Exit B and nearby bus stops from 108 Lok Shan Road.",
-        "spinner_processing": "⏳ AI is searching the web and thinking...",
+        "spinner_processing": "⏳ AI is performing live web search...",
         "spinner_transcribing": "🎙️ Transcribing audio...",
         "msg_voice_error": "⚠️ Speech recognition failed. Please try again.",
         "msg_api_error": "⚠️ AI system busy. Please try asking again."
@@ -152,36 +151,7 @@ client = OpenAI(
 )
 
 # -----------------------------------------------------------------------------
-# 4. 即時網頁搜尋函數 (DuckDuckGo Real-Time Search)
-# -----------------------------------------------------------------------------
-def perform_web_search(query: str, max_results=4) -> str:
-    """即時搜尋 DuckDuckGo 網頁資訊"""
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
-            if not results:
-                return "（網頁搜尋：未找到相關即時結果）"
-            
-            search_snippets = []
-            for idx, r in enumerate(results, 1):
-                search_snippets.append(
-                    f"【來源 {idx}】標題: {r.get('title')}\n內容: {r.get('body')}\n連結: {r.get('href')}"
-                )
-            return "\n\n".join(search_snippets)
-    except Exception as e:
-        return f"（網頁搜尋執行失敗: {str(e)}）"
-
-def needs_web_search(user_query: str) -> bool:
-    """判斷使用者提問是否需要即時網絡搜尋"""
-    keywords = [
-        "billboard", "top 10", "top10", "榜單", "最新", "新聞", "今天", "今日", "賽事", 
-        "比分", "股價", "股價", "排名", "current", "latest", "news", "today", "chart"
-    ]
-    query_lower = user_query.lower()
-    return any(kw in query_lower for kw in keywords)
-
-# -----------------------------------------------------------------------------
-# 5. 側邊欄與語言選擇
+# 4. 側邊欄與語言選擇
 # -----------------------------------------------------------------------------
 with st.sidebar:
     st.markdown("🌐 **Language / 語言設定**")
@@ -206,7 +176,7 @@ st.title(T["title"])
 st.caption(T["caption"])
 
 # -----------------------------------------------------------------------------
-# 6. 通告讀取與動態翻譯
+# 5. 通告讀取與動態翻譯
 # -----------------------------------------------------------------------------
 def load_notices():
     try:
@@ -274,7 +244,7 @@ with st.sidebar:
     st.markdown(f"{T['emergency_title']}\n{T['phone_label']}")
 
 # -----------------------------------------------------------------------------
-# 7. 香港天文台即時官方天氣 API
+# 6. 香港天文台即時官方天氣 API
 # -----------------------------------------------------------------------------
 def get_real_hk_weather(lang):
     api_lang = "tc"
@@ -312,9 +282,14 @@ def get_real_hk_weather(lang):
         return "⚠️ 天氣資料暫時未能載入，請稍後再試。"
 
 # -----------------------------------------------------------------------------
-# 8. 全能通用 System Prompt (加入即時網頁搜尋資訊整合規則)
+# 7. 全能通用 System Prompt (解除知識庫限制，允許實時搜尋)
 # -----------------------------------------------------------------------------
 SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Assistant' (志昌 AI 智能助手).
+
+【REAL-TIME SEARCH & ACCURACY INSTRUCTIONS】
+- You have real-time web search capability enabled.
+- NEVER claim "I cannot browse the internet in real-time", "I cannot give live scores/charts", or "Please check the official website".
+- Use live search results to answer queries regarding Billboard Top 10, latest news, current stock prices, sports scores, and current events.
 
 【LOCATION ANCHORING & FOOD RECOMMENDATION RULES】
 1. DEFAULT LOCATION:
@@ -328,11 +303,7 @@ SYSTEM_PROMPT = f"""You are 'Chi Cheong AI Assistant' (志昌 AI 智能助手).
 3. SPECIFIED LOCATIONS:
    - If the user explicitly mentions a different area (e.g., "旺角美食", "Mong Kok food", "東京景點"), answer for that specified area instead.
 
-4. REAL-TIME WEB SEARCH INTEGRATION:
-   - If real-time web search results are provided below, prioritize that search information to answer live query requests (e.g., Billboard Top 10, latest news, stock prices, sports events).
-   - Synthesize the real-time snippets into a clean, easy-to-read list or summary for the user, citing standard references if applicable.
-
-5. REAL-TIME SEARCH LINKS FOR RESTAURANTS:
+4. REAL-TIME SEARCH LINKS (PREVENT CLOSED SHOPS):
    - For EACH restaurant recommended, provide:
      * OpenRice Real-time Link: `https://www.openrice.com/zh/hongkong/restaurants?what=ENCODED_NAME`
      * Google Maps Link: `https://www.google.com/maps/search/?api=1&query=ENCODED_NAME`
@@ -342,7 +313,7 @@ Style Instruction: {T['ai_style_instruction']}
 """
 
 # -----------------------------------------------------------------------------
-# 9. 快捷按鈕
+# 8. 快捷按鈕
 # -----------------------------------------------------------------------------
 st.markdown(T["shortcut_header"])
 
@@ -363,7 +334,7 @@ with col3:
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# 10. 🎤 語音搜尋
+# 9. 🎤 語音搜尋
 # -----------------------------------------------------------------------------
 st.markdown("---")
 audio_input = st.audio_input(T["voice_search_label"])
@@ -382,14 +353,14 @@ if audio_input is not None:
             st.warning(T["msg_voice_error"])
 
 # -----------------------------------------------------------------------------
-# 11. 對話紀錄顯示
+# 10. 對話紀錄顯示
 # -----------------------------------------------------------------------------
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 # -----------------------------------------------------------------------------
-# 12. 自由文字輸入框
+# 11. 自由文字輸入框
 # -----------------------------------------------------------------------------
 user_text = st.chat_input(T["chat_placeholder"])
 
@@ -399,37 +370,36 @@ if user_text:
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# 13. AI 核心發送與回應（整合即時搜尋）
+# 12. AI 核心發送與回應 (開啟 OpenRouter 網絡搜尋外掛)
 # -----------------------------------------------------------------------------
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-    latest_user_msg = st.session_state.messages[-1]["content"]
-    
     with st.chat_message("assistant"):
         with st.spinner(T["spinner_processing"]):
-            # 檢查是否觸發即時網頁搜尋
-            web_context = ""
-            if needs_web_search(latest_user_msg):
-                search_results = perform_web_search(latest_user_msg)
-                web_context = f"\n\n【即時網頁搜尋檢索到的最新資料】：\n{search_results}\n請務必根據上述最新網頁資料回答用戶的問題。"
-
             ai_reply = None
-            
-            # 構建帶有即時檢索脈絡的 API messages
-            api_messages = [{"role": "system", "content": SYSTEM_PROMPT + web_context}] + [
+            api_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + [
                 {"role": m["role"], "content": m["content"]}
                 for m in st.session_state.messages
             ]
 
-            models_to_try = ["openai/gpt-4o-mini", "deepseek/deepseek-chat"]
+            # 支援聯網和檢索能力強大的模型列表
+            models_to_try = [
+                "google/gemini-2.0-flash-001",
+                "openai/gpt-4o-mini",
+                "deepseek/deepseek-chat"
+            ]
             last_err = ""
 
             for m in models_to_try:
                 try:
+                    # 使用 extra_body 加入 OpenRouter 原生 Web Search 插件
                     res = client.chat.completions.create(
                         model=m,
                         messages=api_messages,
                         temperature=0.3,
-                        timeout=20
+                        timeout=25,
+                        extra_body={
+                            "plugins": [{"id": "web"}]  # 啟用 OpenRouter 網絡搜尋外掛
+                        }
                     )
                     ai_reply = res.choices[0].message.content.strip()
                     if ai_reply:
